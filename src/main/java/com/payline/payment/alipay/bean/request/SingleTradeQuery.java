@@ -26,7 +26,7 @@ public class SingleTradeQuery extends Request {
         params.put("_input_charset", this.getInputCharset());
         params.put("out_trade_no", this.getOutTradeNo());
         params.put("partner", this.getPartner());
-        params.put("service", this.getService().name());
+        params.put("service", this.getService().getService());
         return params;
     }
 }

@@ -1,7 +1,6 @@
 package com.payline.payment.alipay.utils.business;
 
 import com.payline.pmapi.bean.common.FailureCause;
-import com.payline.pmapi.bean.payment.response.impl.PaymentResponseSuccess;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;

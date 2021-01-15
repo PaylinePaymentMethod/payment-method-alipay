@@ -4,6 +4,7 @@ import com.payline.payment.alipay.MockUtils;
 import com.payline.payment.alipay.bean.object.Trade;
 import com.payline.payment.alipay.bean.response.APIResponse;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.utils.SignatureUtils;
 import com.payline.payment.alipay.utils.http.HttpClient;
 import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.bean.notification.request.NotificationRequest;
@@ -28,6 +29,7 @@ import java.util.stream.Stream;
 import static com.payline.payment.alipay.bean.object.Trade.TradeStatus.*;
 import static com.payline.payment.alipay.bean.response.NotifyResponse.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 
 class NotificationServiceImplTest {
     @InjectMocks
@@ -36,9 +38,14 @@ class NotificationServiceImplTest {
     @Mock
     private HttpClient client;
 
+    @Mock
+    private SignatureUtils signatureUtils;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
+
+        Mockito.doReturn(true).when(signatureUtils).getVerification(any(),anyMap());
     }
 
 

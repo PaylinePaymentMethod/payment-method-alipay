@@ -3,7 +3,6 @@ package com.payline.payment.alipay.integration;
 import com.payline.payment.alipay.MockUtils;
 import com.payline.payment.alipay.service.impl.ConfigurationServiceImpl;
 import com.payline.payment.alipay.service.impl.PaymentServiceImpl;
-import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.pmapi.bean.payment.ContractProperty;
 import com.payline.pmapi.bean.payment.PaymentFormContext;
 import com.payline.pmapi.bean.payment.request.PaymentRequest;
@@ -25,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class TestIT extends AbstractPaymentIntegration {
+class TestIT extends AbstractPaymentIntegration {
     private ConfigurationService configurationService = new ConfigurationServiceImpl();
     private PaymentServiceImpl paymentService = new PaymentServiceImpl();
     @Override
@@ -82,7 +81,7 @@ public class TestIT extends AbstractPaymentIntegration {
     void fullPaymentTest() {
         // Login
         Map<String, String> errors = configurationService.check(MockUtils.aContractParametersCheckRequest());
-        //Assertions.assertEquals(0, errors.size());
+//        Assertions.assertEquals(0, errors.size());
 
         // Initialise a payment
         PaymentRequest request = createDefaultPaymentRequest();

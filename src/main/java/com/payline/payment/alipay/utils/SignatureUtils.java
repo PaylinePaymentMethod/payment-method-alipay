@@ -9,11 +9,23 @@ import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class SignatureUtils {
+    private static final String SIGN = "sign";
+    private static final String SIGN_TYPE = "sign_type";
+
+    private static final String RSA = "RSA";
+    private static final String SHA_256_WITH_RSA = "SHA256withRSA";
+
+    private static final String INVALID_ALGORITHM = "Invalid algorithm";
+    private static final String INVALID_KEYS_SPEC = "Invalid KeySpec";
+    private static final String INVALID_SIGNATURE = "Unable to verify the signature";
+
+
     private static class Holder {
         private static final SignatureUtils instance = new SignatureUtils();
     }
@@ -39,8 +51,8 @@ public class SignatureUtils {
         String sha256withRsa = signSHA256withRSA(privateKey, preSigning);
 
         // Add the signature to the parameters
-        params.put("sign", sha256withRsa);
-        params.put("sign_type", "RSA2");
+        params.put(SIGN, sha256withRsa);
+        params.put(SIGN_TYPE, "RSA2");
 
         return params;
     }
@@ -55,7 +67,7 @@ public class SignatureUtils {
         // extract data
         PublicKey publicKey = getPublicKey(configuration);
         String messageToCompare = mapToString(map);
-        String signature = map.get("sign");
+        String signature = map.get(SIGN);
 
         // execute the verification
         return verifySignature(publicKey, messageToCompare, signature);
@@ -69,8 +81,8 @@ public class SignatureUtils {
     public String mapToString(Map<String, String> map) {
         return map.entrySet()
                 .stream()
-                .filter(e -> !e.getKey().equals("sign_type"))
-                .filter(e -> !e.getKey().equals("sign"))
+                .filter(e -> !e.getKey().equals(SIGN_TYPE))
+                .filter(e -> !e.getKey().equals(SIGN))
                 .sorted(Map.Entry.comparingByKey())
                 .map(e -> e.getKey() + "=" + e.getValue())
                 .collect(Collectors.joining("&"));
@@ -83,9 +95,9 @@ public class SignatureUtils {
      * @param message
      * @return RSA signature
      */
-    private String signSHA256withRSA(PrivateKey privateKey, String message) {
+    String signSHA256withRSA(PrivateKey privateKey, String message) {
         try {
-            Signature signature = Signature.getInstance("SHA256withRSA");
+            Signature signature = Signature.getInstance(SHA_256_WITH_RSA);
             signature.initSign(privateKey);
             signature.update(message.getBytes(StandardCharsets.UTF_8));
 
@@ -94,7 +106,7 @@ public class SignatureUtils {
 
         } catch (NoSuchAlgorithmException e) {
             // should never append, "SHA256withRSA" is a valid algorithm
-            throw new PluginException("Invalid algorithm", e);
+            throw new PluginException(INVALID_ALGORITHM, e);
         } catch (SignatureException e) {
             throw new PluginException("Unable to sign the message", e);
         } catch (InvalidKeyException e) {
@@ -110,9 +122,9 @@ public class SignatureUtils {
      * @param signature the signature of the message
      * @return
      */
-    private boolean verifySignature(PublicKey publicKey, String message, String signature) {
+    boolean verifySignature(PublicKey publicKey, String message, String signature) {
         try {
-            Signature publicSignature = Signature.getInstance("SHA256withRSA");
+            Signature publicSignature = Signature.getInstance(SHA_256_WITH_RSA);
             publicSignature.initVerify(publicKey);
             publicSignature.update(message.getBytes(StandardCharsets.UTF_8));
 
@@ -121,9 +133,9 @@ public class SignatureUtils {
 
         } catch (NoSuchAlgorithmException e) {
             // should never append, "SHA256withRSA" is a valid algorithm
-            throw new PluginException("Invalid algorithm", e);
+            throw new PluginException(INVALID_ALGORITHM, e);
         } catch (SignatureException e) {
-            throw new PluginException("Unable to verify the signature", e);
+            throw new PluginException(INVALID_SIGNATURE, e);
         } catch (InvalidKeyException e) {
             throw new PluginException("Invalid Key", e);
         }
@@ -135,29 +147,29 @@ public class SignatureUtils {
      * @param configuration
      * @return PublicKey
      */
-    private PublicKey getPublicKey(RequestConfiguration configuration) {
+    PublicKey getPublicKey(RequestConfiguration configuration) {
         try {
             // check if privateKey exists in partnerConfiguration
             String sKey = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.PUBLIC_KEY);
             if (PluginUtils.isEmpty(sKey)) {
-                throw new InvalidDataException("Missing private key from partner configuration");
+                throw new InvalidDataException("Missing public key from partner configuration");
             }
 
             // extract byte key
-            String privKeyPEM = sKey.replace("-----BEGIN PUBLIC KEY-----", "")
+            String publicKey = sKey.replace("-----BEGIN PUBLIC KEY-----", "")
                     .replace("-----END PUBLIC KEY-----", "")
                     .replace("\n", "");
-            byte[] decoded = Base64.getDecoder().decode(privKeyPEM);
+            byte[] decoded = Base64.getDecoder().decode(publicKey);
 
-            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(decoded);
+            KeyFactory kf = KeyFactory.getInstance(RSA);
             return kf.generatePublic(spec);
 
         } catch (NoSuchAlgorithmException e) {
             // should never append, "RSA" is a valid algorithm
-            throw new PluginException("Invalid algorithm", e);
+            throw new PluginException(INVALID_ALGORITHM, e);
         } catch (InvalidKeySpecException e) {
-            throw new PluginException("Invalid KeySpec", e);
+            throw new PluginException(INVALID_KEYS_SPEC, e);
         }
     }
 
@@ -166,7 +178,7 @@ public class SignatureUtils {
      * @param configuration
      * @return PrivateKey
      */
-    private PrivateKey getPrivateKey(RequestConfiguration configuration) {
+    PrivateKey getPrivateKey(RequestConfiguration configuration) {
         try {
             // check if privateKey exists in partnerConfiguration
             String sKey = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.PAYLINE_PRIVATE_KEY);
@@ -181,14 +193,14 @@ public class SignatureUtils {
             byte[] decoded = Base64.getDecoder().decode(privKeyPEM);
 
             PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
-            KeyFactory kf = KeyFactory.getInstance("RSA");
+            KeyFactory kf = KeyFactory.getInstance(RSA);
             return kf.generatePrivate(spec);
 
         } catch (NoSuchAlgorithmException e) {
             // should never append, "RSA" is a valid algorithm
-            throw new PluginException("Invalid algorithm", e);
+            throw new PluginException(INVALID_ALGORITHM, e);
         } catch (InvalidKeySpecException e) {
-            throw new PluginException("Invalid KeySpec", e);
+            throw new PluginException(INVALID_KEYS_SPEC, e);
         }
     }
 }

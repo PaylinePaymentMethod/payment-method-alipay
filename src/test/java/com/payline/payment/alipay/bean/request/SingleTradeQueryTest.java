@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import static com.payline.payment.alipay.bean.object.ForexService.SINGLE_TRADE_QUERY;
 
-public class SingleTradeQueryTest {
+class SingleTradeQueryTest {
 
     @Test
     void get_input_charset() {

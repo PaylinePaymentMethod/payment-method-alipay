@@ -47,26 +47,6 @@ class RefundServiceImplTest {
     }
 
     @Test
-    void refundRequestNotOK() {
-        String xmlKo = "<?xml version=\"1.0\" encoding=\"GBK\"?>\n" +
-                "<alipay>\n" +
-                "    <is_success>F</is_success>\n" +
-                "    <error>ILLEGAL_ARGUMENT</error>\n" +
-                "    <sign>bXZsM4/TKsISBTHbiqgyQ6q8M30MNI+evD7JFg==</sign>\n" +
-                "    <sign_type>RSA2</sign_type>\n" +
-                "</alipay>";
-        APIResponse apiResponse = APIResponse.fromXml(xmlKo);
-        Mockito.doReturn(apiResponse).when(client).get(any(), any());
-
-        RefundResponse response = service.refundRequest(MockUtils.anInvalidPaylineRefundRequest());
-        Assertions.assertEquals(RefundResponseFailure.class, response.getClass());
-
-        RefundResponseFailure responseFailure = (RefundResponseFailure) response;
-        Assertions.assertEquals("ILLEGAL_ARGUMENT", responseFailure.getErrorCode());
-        Assertions.assertEquals(FailureCause.INVALID_DATA, responseFailure.getFailureCause());
-    }
-
-    @Test
     void refundRequestPluginException() {
         PluginException e = new PluginException("foo", FailureCause.REFUSED);
         Mockito.doThrow(e).when(client).get(any(), any());

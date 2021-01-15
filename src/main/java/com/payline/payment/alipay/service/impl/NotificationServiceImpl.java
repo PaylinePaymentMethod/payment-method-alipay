@@ -8,9 +8,11 @@ import com.payline.payment.alipay.bean.request.SingleTradeQuery;
 import com.payline.payment.alipay.bean.response.APIResponse;
 import com.payline.payment.alipay.bean.response.NotificationMessage;
 import com.payline.payment.alipay.bean.response.NotifyResponse;
+import com.payline.payment.alipay.exception.InvalidDataException;
 import com.payline.payment.alipay.exception.PluginException;
 import com.payline.payment.alipay.utils.EndTransactionNotificationUtils;
 import com.payline.payment.alipay.utils.PluginUtils;
+import com.payline.payment.alipay.utils.SignatureUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.constant.RequestContextKeys;
 import com.payline.payment.alipay.utils.http.HttpClient;
@@ -41,6 +43,7 @@ public class NotificationServiceImpl implements NotificationService {
     private static final Logger LOGGER = LogManager.getLogger(NotificationServiceImpl.class);
 
     private HttpClient client = HttpClient.getInstance();
+    private SignatureUtils signatureUtils = SignatureUtils.getInstance();
 
     @Override
     public NotificationResponse parse(NotificationRequest request) {
@@ -54,6 +57,12 @@ public class NotificationServiceImpl implements NotificationService {
             String content = PluginUtils.inputStreamToString(request.getContent());
 
             Map<String, String> val = PluginUtils.createMapFromString(content);
+
+            // verify signature
+            if(!signatureUtils.getVerification(configuration, val)){
+                throw new InvalidDataException("Invalid Alipay signature");
+            }
+
             notificationMessage = NotificationMessage.fromMap(val);
             transactionId = notificationMessage.getOutTradeNo();
             String notificationId = notificationMessage.getNotify_id();

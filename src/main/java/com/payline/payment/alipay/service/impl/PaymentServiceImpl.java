@@ -34,14 +34,14 @@ public class PaymentServiceImpl implements PaymentService {
         PaymentResponse paymentResponse;
         try {
             ForexService service;
-            String product_code;
+            String productCode;
 
             if (PluginUtils.mobileUser(paymentRequest.getBrowser().getUserAgent())) {
                 service = CREATE_FOREX_TRADE_WAP;
-                product_code = "NEW_WAP_OVERSEAS_SELLER";
+                productCode = "NEW_WAP_OVERSEAS_SELLER";
             } else {
                 service = CREATE_FOREX_TRADE;
-                product_code = "NEW_OVERSEAS_SELLER";
+                productCode = "NEW_OVERSEAS_SELLER";
             }
             // create createForexTrade request object
             CreateForexTrade createForexTrade = CreateForexTrade.CreateForexTradeBuilder
@@ -50,7 +50,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .withNotifyUrl(paymentRequest.getEnvironment().getNotificationURL())
                     .withOutTradeNo(paymentRequest.getTransactionId())
                     .withPartner(paymentRequest.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue())
-                    .withProductCode(product_code)
+                    .withProductCode(productCode)
                     .withReferUrl(paymentRequest.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_URL).getValue())
                     .withReturnUrl(paymentRequest.getEnvironment().getRedirectionReturnURL())
                     .withNotifyUrl(paymentRequest.getEnvironment().getNotificationURL())

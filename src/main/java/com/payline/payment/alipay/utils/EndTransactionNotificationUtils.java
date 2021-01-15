@@ -22,9 +22,9 @@ public class EndTransactionNotificationUtils {
     private final DateFormat yearFormatter = new SimpleDateFormat("yy");
     private final DateFormat fullFormatter = new SimpleDateFormat("yyyyMMDDhhmmss");
 
-    private static final String trsPmtCtxCrdhldrPres = "Y";
-    private static final String ert = "24";
-    private static final String tagTransactionType = "20";
+    private static final String TRS_PMT_CTX_CRDHLDR_PRES = "Y";
+    private static final String ERT = "24";
+    private static final String TAG_TRANSACTION_TYPE = "20";
 
     private static class Holder {
         private static final EndTransactionNotificationUtils instance = new EndTransactionNotificationUtils();
@@ -76,16 +76,16 @@ public class EndTransactionNotificationUtils {
         return EndTransactionNotificationRequest.Builder
                 .anEndTransactionNotificationRequest()
                 .withMessage(message)
-                .withTagTransactionType(tagTransactionType)
+                .withTagTransactionType(TAG_TRANSACTION_TYPE)
                 .withTagAmountAuthorized(tagAmountAuthorized)
                 .withPartnerCurrency(partnerCurrency)
                 .withTagTransactionTime(tagTransactionTime)
                 .withTagTransactionDate(tagTransactionDate)
                 .withTagTransactionYear(tagTransactionYear)
                 .withSchemePaymentTime(schemePaymentTime)
-                .withTrsPmtCtxCrdhldrPres(trsPmtCtxCrdhldrPres)
+                .withTrsPmtCtxCrdhldrPres(TRS_PMT_CTX_CRDHLDR_PRES)
                 .withTagAcqIdentifier(tagAcqIdentifier)
-                .withErt(ert)
+                .withErt(ERT)
                 .withScheme(scheme)
                 .withSchemeTransId(schemeTransId)
                 .withPartnerTransId(partnerTransId)
@@ -123,16 +123,16 @@ public class EndTransactionNotificationUtils {
         return EndTransactionNotificationRequest.Builder
                 .anEndTransactionNotificationRequest()
                 .withMessage(message)
-                .withTagTransactionType(tagTransactionType)
+                .withTagTransactionType(TAG_TRANSACTION_TYPE)
                 .withTagAmountAuthorized(tagAmountAuthorized)
                 .withPartnerCurrency(partnerCurrency)
                 .withTagTransactionTime(tagTransactionTime)
                 .withTagTransactionDate(tagTransactionDate)
                 .withTagTransactionYear(tagTransactionYear)
                 .withSchemePaymentTime(schemePaymentTime)
-                .withTrsPmtCtxCrdhldrPres(trsPmtCtxCrdhldrPres)
+                .withTrsPmtCtxCrdhldrPres(TRS_PMT_CTX_CRDHLDR_PRES)
                 .withTagAcqIdentifier(tagAcqIdentifier)
-                .withErt(ert)
+                .withErt(ERT)
                 .withScheme(scheme)
                 .withSchemeTransId(schemeTransId)
                 .withPartnerTransId(partnerTransId)

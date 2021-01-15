@@ -3,11 +3,9 @@ package com.payline.payment.alipay.service.impl;
 import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
 import com.payline.payment.alipay.bean.request.EndTransactionNotificationRequest;
 import com.payline.payment.alipay.bean.request.ForexRefund;
-import com.payline.payment.alipay.bean.response.APIResponse;
 import com.payline.payment.alipay.exception.PluginException;
 import com.payline.payment.alipay.utils.EndTransactionNotificationUtils;
 import com.payline.payment.alipay.utils.PluginUtils;
-import com.payline.payment.alipay.utils.business.ErrorUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.http.HttpClient;
 import com.payline.pmapi.bean.common.FailureCause;
@@ -48,27 +46,19 @@ public class RefundServiceImpl implements RefundService {
                     .build();
 
             // call refund API
-            APIResponse refundAPIResponse = client.get(configuration, forexRefund.getParametersList());
+            client.get(configuration, forexRefund.getParametersList());
 
-            // check the response and return a RefundResponse
-            if (refundAPIResponse.isSuccess()) {
-                refundResponse = RefundResponseSuccess.RefundResponseSuccessBuilder.aRefundResponseSuccess()
-                        .withPartnerTransactionId(refundRequest.getPartnerTransactionId())
-                        .withStatusCode("200")
-                        .build();
+            // if code goes here, the refund is a success.
+            refundResponse = RefundResponseSuccess.RefundResponseSuccessBuilder.aRefundResponseSuccess()
+                    .withPartnerTransactionId(refundRequest.getPartnerTransactionId())
+                    .withStatusCode("200")
+                    .build();
 
+            // notify Monext
+            EndTransactionNotificationRequest endTransactionNotificationRequest = EndTransactionNotificationUtils.getInstance()
+                    .createFromRefundService(refundRequest);
+            client.sendNotificationMonext(configuration, endTransactionNotificationRequest);
 
-                // notify Monext
-                EndTransactionNotificationRequest endTransactionNotificationRequest = EndTransactionNotificationUtils.getInstance()
-                        .createFromRefundService(refundRequest);
-                client.sendNotificationMonext(configuration, endTransactionNotificationRequest);
-
-            } else {
-                refundResponse = RefundResponseFailure.RefundResponseFailureBuilder.aRefundResponseFailure()
-                        .withErrorCode(refundAPIResponse.getError())
-                        .withFailureCause(ErrorUtils.getFailureCause(refundAPIResponse.getError()))
-                        .build();
-            }
 
         } catch (PluginException e) {
             LOGGER.error(e.getErrorCode(), e);

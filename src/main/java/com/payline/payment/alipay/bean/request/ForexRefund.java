@@ -1,7 +1,5 @@
 package com.payline.payment.alipay.bean.request;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,7 +80,7 @@ public class ForexRefund extends Request {
         params.put("partner", this.getPartner());
         params.put("product_code", this.productCode);
         params.put("return_amount", this.returnAmount);
-        params.put("service", this.getService().name());
+        params.put("service", this.getService().getService());
         return params;
     }
 }

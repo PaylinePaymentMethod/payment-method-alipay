@@ -1,6 +1,5 @@
 package com.payline.payment.alipay.bean.request;
 
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.payline.payment.alipay.bean.object.ForexService;
 
 import java.util.HashMap;

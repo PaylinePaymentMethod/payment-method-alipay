@@ -9,6 +9,7 @@ import com.payline.payment.alipay.exception.PluginException;
 import com.payline.payment.alipay.utils.EndTransactionNotificationUtils;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.SignatureUtils;
+import com.payline.payment.alipay.utils.business.ErrorUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.common.FailureCause;
@@ -115,9 +116,25 @@ public class HttpClient {
      * @param params
      */
     public NotifyResponse notificationIsVerified(RequestConfiguration requestConfiguration, Map<String, String> params) {
-        // Get the result of the request
-        StringResponse response = getWithSignature(requestConfiguration, params);
-        return NotifyResponse.valueOf(response.getContent().toUpperCase());
+        try {
+            // Create the HttpGet url with parameters
+            URI baseUrl = constructURL(requestConfiguration);
+            List<NameValuePair> list = fromMap(signatureUtils.getSignedParameters(requestConfiguration, params));
+            URI uri = new URIBuilder(baseUrl)
+                    .setParameters(list)
+                    .build();
+
+            // Create the HttpGet request
+            HttpGet httpGet = new HttpGet(uri);
+            httpGet.setConfig(createHttpRequestConfig(requestConfiguration));
+
+            // Execute request
+            StringResponse response = this.execute(httpGet);
+            return NotifyResponse.valueOf(response.getContent().toUpperCase());
+
+        } catch (URISyntaxException e) {
+            throw new InvalidDataException("Syntax Exception", e);
+        }
     }
 
     /**
@@ -127,32 +144,6 @@ public class HttpClient {
      * @return The response converted as a {@link APIResponse}.
      */
     public APIResponse get(RequestConfiguration requestConfiguration, Map<String, String> params) {
-        // Get the result of the request
-        StringResponse response = getWithSignature(requestConfiguration, params);
-        return APIResponse.fromXml(response.getContent());
-    }
-
-    /**
-     * Build and send a request to get a refund
-     *
-     * @param requestConfiguration
-     * @param params
-     * @return The response converted as a {@link APIResponse}.
-     */
-    public APIResponse getRefund(RequestConfiguration requestConfiguration, Map<String, String> params) {
-
-        // Get the result of the request
-        StringResponse response = getWithSignature(requestConfiguration, params);
-        return APIResponse.fromXml(response.getContent());
-    }
-
-    /**
-     * Manage get API call with signature
-     *
-     * @param requestConfiguration
-     * @return StringResponse
-     */
-    public StringResponse getWithSignature(RequestConfiguration requestConfiguration, Map<String, String> params) {
         try {
             // Create the HttpGet url with parameters
             URI baseUrl = constructURL(requestConfiguration);
@@ -168,12 +159,13 @@ public class HttpClient {
             // Execute request
             StringResponse response = this.execute(httpGet);
 
-            // signature verification
-            Map responseMap = PluginUtils.createMapFromString(response.getContent());
-            if (!signatureUtils.getVerification(requestConfiguration, responseMap)) {
-                throw new InvalidDataException("Received signature is not valid");
+            APIResponse apiResponse = APIResponse.fromXml(response.getContent());
+            if (!apiResponse.isSuccess()){
+                String errorCode = apiResponse.getError();
+                throw new PluginException(errorCode, ErrorUtils.getFailureCause(errorCode));
             }
-            return response;
+
+            return apiResponse;
 
         } catch (URISyntaxException e) {
             throw new InvalidDataException("Syntax Exception", e);

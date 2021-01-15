@@ -43,23 +43,23 @@ public class CreateForexTrade extends Request {
             return this;
         }
 
-        public CreateForexTrade.CreateForexTradeBuilder withNotifyUrl(String notify_url) {
-            this.notifyUrl = notify_url;
+        public CreateForexTrade.CreateForexTradeBuilder withNotifyUrl(String notifyUrl) {
+            this.notifyUrl = notifyUrl;
             return this;
         }
 
-        public CreateForexTrade.CreateForexTradeBuilder withProductCode(String product_code) {
-            this.productCode = product_code;
+        public CreateForexTrade.CreateForexTradeBuilder withProductCode(String productCode) {
+            this.productCode = productCode;
             return this;
         }
 
-        public CreateForexTrade.CreateForexTradeBuilder withReferUrl(String refer_url) {
-            this.referUrl = refer_url;
+        public CreateForexTrade.CreateForexTradeBuilder withReferUrl(String referUrl) {
+            this.referUrl = referUrl;
             return this;
         }
 
-        public CreateForexTrade.CreateForexTradeBuilder withReturnUrl(String return_url) {
-            this.returnUrl = return_url;
+        public CreateForexTrade.CreateForexTradeBuilder withReturnUrl(String returnUrl) {
+            this.returnUrl = returnUrl;
             return this;
         }
 
@@ -68,8 +68,8 @@ public class CreateForexTrade extends Request {
             return this;
         }
 
-        public CreateForexTrade.CreateForexTradeBuilder withTotalFee(String total_fee) {
-            this.totalFee = total_fee;
+        public CreateForexTrade.CreateForexTradeBuilder withTotalFee(String totalFee) {
+            this.totalFee = totalFee;
             return this;
         }
 
@@ -91,7 +91,7 @@ public class CreateForexTrade extends Request {
             params.put("refer_url", this.referUrl);
         }
         params.put("return_url", this.returnUrl);
-        params.put("service", this.getService().name());
+        params.put("service", this.getService().getService());
         params.put("subject", this.subject);
         params.put("total_fee", this.totalFee);
         return params;
