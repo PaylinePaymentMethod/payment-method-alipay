@@ -9,6 +9,7 @@ import com.payline.payment.alipay.utils.SignatureUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.common.FailureCause;
+import com.payline.pmapi.bean.payment.ContractConfiguration;
 import com.payline.pmapi.bean.payment.request.PaymentRequest;
 import com.payline.pmapi.bean.payment.response.PaymentResponse;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseFailure;
@@ -44,20 +45,25 @@ public class PaymentServiceImpl implements PaymentService {
                 service = CREATE_FOREX_TRADE;
                 productCode = "NEW_OVERSEAS_SELLER";
             }
+            final ContractConfiguration contractConfiguration = paymentRequest.getContractConfiguration();
             // create createForexTrade request object
             CreateForexTrade createForexTrade = CreateForexTrade.CreateForexTradeBuilder
                     .aCreateForexTrade()
                     .withCurrency(paymentRequest.getOrder().getAmount().getCurrency().getCurrencyCode())
                     .withNotifyUrl(paymentRequest.getEnvironment().getNotificationURL())
                     .withOutTradeNo(paymentRequest.getTransactionId())
-                    .withPartner(paymentRequest.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue())
+                    .withPartner(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue())
                     .withProductCode(productCode)
-                    .withReferUrl(paymentRequest.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_URL).getValue())
+                    .withReferUrl(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_URL).getValue())
                     .withReturnUrl(paymentRequest.getEnvironment().getRedirectionReturnURL())
                     .withNotifyUrl(paymentRequest.getEnvironment().getNotificationURL())
                     .withService(service)
                     .withSubject(paymentRequest.getSoftDescriptor())
                     .withTotalFee(PluginUtils.createStringAmount(paymentRequest.getAmount()))
+                    .withSupplier(contractConfiguration.getProperty(ContractConfigurationKeys.SUPPLIER).getValue())
+                    .withSecondaryMerchantId(contractConfiguration.getProperty(ContractConfigurationKeys.SECONDARY_MERCHANT_ID).getValue())
+                    .withSecondaryMerchantIndustry(contractConfiguration.getProperty(ContractConfigurationKeys.SECONDARY_MERCHANT_INDUSTRY).getValue())
+                    .withSecondaryMerchantName(contractConfiguration.getProperty(ContractConfigurationKeys.SECONDARY_MERCHANT_NAME).getValue())
                     .build();
 
             // create the url to get

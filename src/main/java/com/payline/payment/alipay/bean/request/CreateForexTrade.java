@@ -13,6 +13,10 @@ public class CreateForexTrade extends Request {
     private final String returnUrl;
     private final String subject;
     private final String totalFee;
+    private final String supplier;
+    private final String secondaryMerchantId;
+    private final String secondaryMerchantName;
+    private final String secondaryMerchantIndustry;
 
     private CreateForexTrade(CreateForexTradeBuilder builder) {
         super(builder);
@@ -23,6 +27,10 @@ public class CreateForexTrade extends Request {
         this.returnUrl = builder.returnUrl;
         this.subject = builder.subject;
         this.totalFee = builder.totalFee;
+        this.supplier = builder.supplier;
+        this.secondaryMerchantId = builder.secondaryMerchantId;
+        this.secondaryMerchantName = builder.secondaryMerchantName;
+        this.secondaryMerchantIndustry = builder.secondaryMerchantIndustry;
     }
 
     public static class CreateForexTradeBuilder extends RequestBuilder<CreateForexTradeBuilder> {
@@ -33,6 +41,10 @@ public class CreateForexTrade extends Request {
         private String returnUrl;
         private String subject;
         private String totalFee;
+        private String supplier;
+        private String secondaryMerchantId;
+        private String secondaryMerchantName;
+        private String secondaryMerchantIndustry;
 
         public static CreateForexTradeBuilder aCreateForexTrade() {
             return new CreateForexTradeBuilder();
@@ -73,6 +85,26 @@ public class CreateForexTrade extends Request {
             return this;
         }
 
+        public CreateForexTrade.CreateForexTradeBuilder withSupplier(String supplier) {
+            this.supplier = supplier;
+            return this;
+        }
+
+        public CreateForexTrade.CreateForexTradeBuilder withSecondaryMerchantId(String secondaryMerchantId) {
+            this.secondaryMerchantId = secondaryMerchantId;
+            return this;
+        }
+
+        public CreateForexTrade.CreateForexTradeBuilder withSecondaryMerchantName(String secondaryMerchantName) {
+            this.secondaryMerchantName = secondaryMerchantName;
+            return this;
+        }
+
+        public CreateForexTrade.CreateForexTradeBuilder withSecondaryMerchantIndustry(String secondaryMerchantIndustry) {
+            this.secondaryMerchantIndustry = secondaryMerchantIndustry;
+            return this;
+        }
+
         public CreateForexTrade build() {
             return new CreateForexTrade(this);
         }
@@ -91,8 +123,12 @@ public class CreateForexTrade extends Request {
             params.put("refer_url", this.referUrl);
         }
         params.put("return_url", this.returnUrl);
+        params.put("secondary_merchant_id", this.secondaryMerchantId);
+        params.put("secondary_merchant_industry", this.secondaryMerchantIndustry);
+        params.put("secondary_merchant_name", this.secondaryMerchantName);
         params.put("service", this.getService().getService());
         params.put("subject", this.subject);
+        params.put("supplier", this.supplier);
         params.put("total_fee", this.totalFee);
         return params;
     }
