@@ -3,7 +3,9 @@ package com.payline.payment.alipay.service.impl;
 import com.payline.payment.alipay.MockUtils;
 import com.payline.payment.alipay.exception.PluginException;
 import com.payline.payment.alipay.utils.SignatureUtils;
+import com.payline.payment.alipay.utils.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.common.FailureCause;
+import com.payline.pmapi.bean.configuration.PartnerConfiguration;
 import com.payline.pmapi.bean.payment.Browser;
 import com.payline.pmapi.bean.payment.request.PaymentRequest;
 import com.payline.pmapi.bean.payment.response.PaymentResponse;
@@ -17,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +27,7 @@ import static org.mockito.ArgumentMatchers.any;
 
 class PaymentServiceImplTest {
     @InjectMocks
-    private PaymentServiceImpl service = new PaymentServiceImpl();
+    private PaymentServiceImpl underTest = new PaymentServiceImpl();
 
     @Mock
     private SignatureUtils signatureUtils = SignatureUtils.getInstance();
@@ -38,26 +41,32 @@ class PaymentServiceImplTest {
     void paymentRequestPCOK() {
         Map<String,String> params = new HashMap<>();
         params.put("foo", "bar");
+        params.put("foo2", "baz");
         Mockito.doReturn(params).when(signatureUtils).getSignedParameters(any(), any());
 
-        PaymentResponse response = service.paymentRequest(MockUtils.aPaylinePaymentRequest());
+        PaymentResponse response = underTest.paymentRequest(MockUtils.aPaylinePaymentRequest());
 
         Assertions.assertEquals(PaymentResponseRedirect.class, response.getClass());
         PaymentResponseRedirect responseRedirect = (PaymentResponseRedirect) response;
-        Assertions.assertEquals(params, responseRedirect.getRedirectionRequest().getParameters());
+        final URL url = responseRedirect.getRedirectionRequest().getUrl();
+        Assertions.assertNotNull(url);
+        Assertions.assertEquals("https://mapi.alipaydev.com/gateway.do?foo=bar&foo2=baz", url.toString());
     }
 
     @Test
     void paymentRequestMobileOK() {
         Map<String,String> params = new HashMap<>();
         params.put("foo", "bar");
+        params.put("foo2", "baz");
         Mockito.doReturn(params).when(signatureUtils).getSignedParameters(any(), any());
 
-        PaymentResponse response = service.paymentRequest(MockUtils.aPaylinePaymentRequestBuilder().withBrowser(Browser.BrowserBuilder.aBrowser().withUserAgent("Mobile Safari").build()).build());
+        PaymentResponse response = underTest.paymentRequest(MockUtils.aPaylinePaymentRequestBuilder().withBrowser(Browser.BrowserBuilder.aBrowser().withUserAgent("Mobile Safari").build()).build());
 
         Assertions.assertEquals(PaymentResponseRedirect.class, response.getClass());
         PaymentResponseRedirect responseRedirect = (PaymentResponseRedirect) response;
-        Assertions.assertEquals(params, responseRedirect.getRedirectionRequest().getParameters());
+        final URL url = responseRedirect.getRedirectionRequest().getUrl();
+        Assertions.assertNotNull(url);
+        Assertions.assertEquals("https://mapi.alipaydev.com/gateway.do?foo=bar&foo2=baz", url.toString());
     }
 
     @Test
@@ -65,7 +74,7 @@ class PaymentServiceImplTest {
         Mockito.doReturn(new HashMap<String,String>()).when(signatureUtils).getSignedParameters(any(), any());
 
         PaymentRequest.Builder aPaylinePaymentRequest = MockUtils.aPaylinePaymentRequestBuilder().withPartnerConfiguration(MockUtils.aPartnerConfigurationMalformedURLException());
-        PaymentResponse response = service.paymentRequest(aPaylinePaymentRequest.build());
+        PaymentResponse response = underTest.paymentRequest(aPaylinePaymentRequest.build());
         Assertions.assertEquals(PaymentResponseFailure.class, response.getClass());
 
         PaymentResponseFailure responseFailure = (PaymentResponseFailure) response;
@@ -74,12 +83,27 @@ class PaymentServiceImplTest {
     }
 
     @Test
+    void paymentRequestWithoutAlipayUrl() {
+        final PaymentRequest paymentRequest = MockUtils.aPaylinePaymentRequestBuilder()
+                .withPartnerConfiguration(new PartnerConfiguration(new HashMap<>(), new HashMap<>()))
+                .build();
+        Mockito.doReturn(new HashMap<String,String>()).when(signatureUtils).getSignedParameters(any(), any());
+
+        PaymentResponse response = underTest.paymentRequest(paymentRequest);
+
+        Assertions.assertEquals(PaymentResponseFailure.class, response.getClass());
+        PaymentResponseFailure responseFailure = (PaymentResponseFailure) response;
+        Assertions.assertEquals(PartnerConfigurationKeys.ALIPAY_URL + " is missing in the PartnerConfiguration", responseFailure.getErrorCode());
+        Assertions.assertEquals(FailureCause.INTERNAL_ERROR, responseFailure.getFailureCause());
+    }
+
+    @Test
     void paymentRequestPluginException() {
         PluginException e = new PluginException("thisIsAmessage", FailureCause.CANCEL);
         Mockito.doThrow(e).when(signatureUtils).getSignedParameters(any(), any());
 
         PaymentRequest.Builder aPaylinePaymentRequest = MockUtils.aPaylinePaymentRequestBuilder().withPartnerConfiguration(MockUtils.aPartnerConfigurationMalformedURLException());
-        PaymentResponse response = service.paymentRequest(aPaylinePaymentRequest.build());
+        PaymentResponse response = underTest.paymentRequest(aPaylinePaymentRequest.build());
         Assertions.assertEquals(PaymentResponseFailure.class, response.getClass());
 
         PaymentResponseFailure responseFailure = (PaymentResponseFailure) response;
@@ -93,7 +117,7 @@ class PaymentServiceImplTest {
         Mockito.doThrow(e).when(signatureUtils).getSignedParameters(any(), any());
 
         PaymentRequest.Builder aPaylinePaymentRequest = MockUtils.aPaylinePaymentRequestBuilder().withPartnerConfiguration(MockUtils.aPartnerConfigurationMalformedURLException());
-        PaymentResponse response = service.paymentRequest(aPaylinePaymentRequest.build());
+        PaymentResponse response = underTest.paymentRequest(aPaylinePaymentRequest.build());
         Assertions.assertEquals(PaymentResponseFailure.class, response.getClass());
 
         PaymentResponseFailure responseFailure = (PaymentResponseFailure) response;

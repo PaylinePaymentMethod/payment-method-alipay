@@ -20,6 +20,7 @@ import org.apache.logging.log4j.Logger;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
+import java.util.StringJoiner;
 
 import static com.payline.payment.alipay.bean.object.ForexService.CREATE_FOREX_TRADE;
 import static com.payline.payment.alipay.bean.object.ForexService.CREATE_FOREX_TRADE_WAP;
@@ -63,12 +64,19 @@ public class PaymentServiceImpl implements PaymentService {
             Map<String, String> parameters = createForexTrade.getParametersList();
             Map<String, String> signedParameters = signatureUtils.getSignedParameters(configuration, parameters);
             Map<String, String> encodedSignedParameters = PluginUtils.encode(signedParameters);
-
+            final StringJoiner urlParameters = new StringJoiner("&");
+            for (final Map.Entry<String, String> entry : encodedSignedParameters.entrySet()) {
+                urlParameters.add(entry.getKey() + "=" + entry.getValue());
+            }
+            final String baseUrl = paymentRequest.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.ALIPAY_URL);
+            if (baseUrl == null) {
+                throw new PluginException(PartnerConfigurationKeys.ALIPAY_URL + " is missing in the PartnerConfiguration");
+            }
+            final String url = baseUrl + "?" + urlParameters.toString();
             // return a PaymentResponseRedirect
             PaymentResponseRedirect.RedirectionRequest redirectionRequest = PaymentResponseRedirect.RedirectionRequest.RedirectionRequestBuilder.aRedirectionRequest()
                     .withRequestType(PaymentResponseRedirect.RedirectionRequest.RequestType.POST)
-                    .withUrl(new URL(paymentRequest.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.ALIPAY_URL)))
-                    .withPostFormData(encodedSignedParameters)
+                    .withUrl(new URL(url))
                     .build();
 
             paymentResponse = PaymentResponseRedirect.PaymentResponseRedirectBuilder.aPaymentResponseRedirect()
