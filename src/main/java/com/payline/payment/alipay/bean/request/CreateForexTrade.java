@@ -114,7 +114,9 @@ public class CreateForexTrade extends Request {
         Map<String, String> params = new HashMap<>();
         params.put("_input_charset", this.getInputCharset());
         params.put("currency", this.currency);
-        params.put("notify_url", this.notifyUrl);
+        if (!PluginUtils.isEmpty(this.notifyUrl)) {
+            params.put("notify_url", this.notifyUrl);
+        }
         params.put("out_trade_no", this.getOutTradeNo());
         params.put("partner", this.getPartner());
         params.put("product_code", this.productCode);

@@ -70,7 +70,9 @@ public class SignatureUtils {
         String signature = map.get(SIGN);
 
         // execute the verification
-        return verifySignature(publicKey, messageToCompare, signature);
+        // attention, la signature qui arrive de payline contient des espaces à la place des "+", il faut donc la
+        // remettre en forme
+        return verifySignature(publicKey, messageToCompare, signature.replace(" ", "+"));
     }
 
     /**

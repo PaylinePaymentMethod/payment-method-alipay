@@ -78,7 +78,7 @@ public class PaymentServiceImpl implements PaymentService {
             if (baseUrl == null) {
                 throw new PluginException(PartnerConfigurationKeys.ALIPAY_URL + " is missing in the PartnerConfiguration");
             }
-            final String url = baseUrl + "?" + urlParameters.toString();
+            final String url = baseUrl + "?" + urlParameters;
             // return a PaymentResponseRedirect
             PaymentResponseRedirect.RedirectionRequest redirectionRequest = PaymentResponseRedirect.RedirectionRequest.RedirectionRequestBuilder.aRedirectionRequest()
                     .withRequestType(PaymentResponseRedirect.RedirectionRequest.RequestType.POST)

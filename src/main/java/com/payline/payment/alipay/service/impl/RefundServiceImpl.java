@@ -1,10 +1,8 @@
 package com.payline.payment.alipay.service.impl;
 
 import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
-import com.payline.payment.alipay.bean.request.EndTransactionNotificationRequest;
 import com.payline.payment.alipay.bean.request.ForexRefund;
 import com.payline.payment.alipay.exception.PluginException;
-import com.payline.payment.alipay.utils.EndTransactionNotificationUtils;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.http.HttpClient;
@@ -38,7 +36,7 @@ public class RefundServiceImpl implements RefundService {
                     .withGmtReturn(PluginUtils.formatDate(new Date()))
                     .withIsSync("Y")
                     .withOutReturnNo(refundRequest.getTransactionId())  // refund Id
-                    .withOutTradeNo(refundRequest.getTransactionId())   // transaction Id
+                    .withOutTradeNo(refundRequest.getPartnerTransactionId())   // transaction Id
                     .withPartner(refundRequest.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue())
                     .withProductCode("NEW_OVERSEAS_SELLER")
                     .withReturnAmount(PluginUtils.createStringAmount(refundRequest.getAmount()))
@@ -53,13 +51,6 @@ public class RefundServiceImpl implements RefundService {
                     .withPartnerTransactionId(refundRequest.getPartnerTransactionId())
                     .withStatusCode("200")
                     .build();
-
-            // notify Monext
-            EndTransactionNotificationRequest endTransactionNotificationRequest = EndTransactionNotificationUtils.getInstance()
-                    .createFromRefundService(refundRequest);
-            client.sendNotificationMonext(configuration, endTransactionNotificationRequest);
-
-
         } catch (PluginException e) {
             LOGGER.error(e.getErrorCode(), e);
             refundResponse = e.toRefundResponseFailureBuilder().build();
