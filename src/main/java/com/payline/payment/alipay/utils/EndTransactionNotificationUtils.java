@@ -99,54 +99,6 @@ public class EndTransactionNotificationUtils {
                 .build();
     }
 
-
-    public EndTransactionNotificationRequest createFromRefundService(RefundRequest request) {
-        String message = "0456";
-        String tagAmountAuthorized = request.getAmount().getAmountInSmallestUnit().toString();
-        String partnerCurrency = request.getAmount().getCurrency().getCurrencyCode();
-        String tagTransactionTime = timeFormatter.format(request.getOrder().getDate());
-        String tagTransactionDate = dateFormatter.format(request.getOrder().getDate());
-        String tagTransactionYear = yearFormatter.format(request.getOrder().getDate());
-        String schemePaymentTime = fullFormatter.format(request.getOrder().getDate());
-        String tagAcqIdentifier = createTagAcqIdentifier(request.getContractConfiguration());
-        String scheme = request.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.SCHEME);
-        String schemeTransId = request.getTransactionId();
-        String partnerTransName = request.getContractConfiguration().getPaymentMethodIdentifier();
-        String buyerId = request.getRequestContext().getRequestData().get(RequestContextKeys.BUYER_ID);
-        String partnerId = request.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.PARTNER_ID);
-        String merchantId = request.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.MERCHANT_ID);
-        String mccCode = request.getContractConfiguration().getProperty(ContractConfigurationKeys.SECONDARY_MERCHANT_INDUSTRY).getValue();
-        String storeId = request.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.STORE_ID);
-        String messageSenderId = request.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.MESSAGE_SENDER_ID);
-        String partnerTransId = createPartnerTransId(storeId);
-
-        return EndTransactionNotificationRequest.Builder
-                .anEndTransactionNotificationRequest()
-                .withMessage(message)
-                .withTagTransactionType(TAG_TRANSACTION_TYPE)
-                .withTagAmountAuthorized(tagAmountAuthorized)
-                .withPartnerCurrency(partnerCurrency)
-                .withTagTransactionTime(tagTransactionTime)
-                .withTagTransactionDate(tagTransactionDate)
-                .withTagTransactionYear(tagTransactionYear)
-                .withSchemePaymentTime(schemePaymentTime)
-                .withTrsPmtCtxCrdhldrPres(TRS_PMT_CTX_CRDHLDR_PRES)
-                .withTagAcqIdentifier(tagAcqIdentifier)
-                .withErt(ERT)
-                .withScheme(scheme)
-                .withSchemeTransId(schemeTransId)
-                .withPartnerTransId(partnerTransId)
-                .withPartnerTransName(partnerTransName)
-                .withBuyerId(buyerId)
-                .withPartnerId(partnerId)
-                .withMerchantId(merchantId)
-                .withMccCode(mccCode)
-                .withStoreId(storeId)
-                .withMessageSenderId(messageSenderId)
-                .build();
-    }
-
-
     private String createTagAcqIdentifier(ContractConfiguration configuration) {
         return configuration.getProperty(ContractConfigurationKeys.MERCHANT_BANK).getValue()
                 + configuration.getProperty(ContractConfigurationKeys.MERCHANT_BANK_CODE).getValue();
