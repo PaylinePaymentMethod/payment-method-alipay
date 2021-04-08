@@ -190,4 +190,24 @@ public class PluginUtils {
         sb.insert(sb.length() - nbDigits, ".");
         return sb.toString();
     }
+
+    /**
+     * Left pad a string with zeros
+     * @param input the string to pad
+     * @param size   final size
+     * @return padded string
+     */
+    public static String leftPad(final String input, final int size) {
+        final String result;
+        if (input == null || input.length() >= size) {
+            result = input;
+        } else {
+            final StringBuilder stringBuilder = new StringBuilder();
+            for (int i = 0; i < size; i++) {
+                stringBuilder.append('0');
+            }
+            result = stringBuilder.substring(input.length()) + input;
+        }
+        return result;
+    }
 }
