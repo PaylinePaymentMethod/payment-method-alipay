@@ -10,6 +10,7 @@ public class ContractConfigurationKeys {
     public static final String NOTIFICATION_URL = "notificationURL";
     public static final String MERCHANT_BANK = "merchantBank";
     public static final String MERCHANT_BANK_CODE = "merchantBankCode";
+    public static final String PARTNER_TRANSACTION_ID = "partnerTransactionId";
 
     /* empty constructor to please Sonar */
     private ContractConfigurationKeys() {

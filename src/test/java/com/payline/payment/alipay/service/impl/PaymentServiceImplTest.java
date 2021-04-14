@@ -2,6 +2,7 @@ package com.payline.payment.alipay.service.impl;
 
 import com.payline.payment.alipay.MockUtils;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.service.PartnerTransactionIdService;
 import com.payline.payment.alipay.utils.SignatureUtils;
 import com.payline.payment.alipay.utils.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.common.FailureCause;
@@ -24,6 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 
 class PaymentServiceImplTest {
     @InjectMocks
@@ -31,6 +33,9 @@ class PaymentServiceImplTest {
 
     @Mock
     private SignatureUtils signatureUtils = SignatureUtils.getInstance();
+
+    @Mock
+    private PartnerTransactionIdService partnerTransactionIdService;
 
     @BeforeEach
     void setUp() {
@@ -44,13 +49,17 @@ class PaymentServiceImplTest {
         params.put("foo2", "baz");
         Mockito.doReturn(params).when(signatureUtils).getSignedParameters(any(), any());
 
-        PaymentResponse response = underTest.paymentRequest(MockUtils.aPaylinePaymentRequest());
+        final PaymentRequest paymentRequest = MockUtils.aPaylinePaymentRequest();
+
+        PaymentResponse response = underTest.paymentRequest(paymentRequest);
 
         Assertions.assertEquals(PaymentResponseRedirect.class, response.getClass());
         PaymentResponseRedirect responseRedirect = (PaymentResponseRedirect) response;
         final URL url = responseRedirect.getRedirectionRequest().getUrl();
         Assertions.assertNotNull(url);
         Assertions.assertEquals("https://mapi.alipaydev.com/gateway.do?foo=bar&foo2=baz", url.toString());
+
+        verify(partnerTransactionIdService).retrievePartnerTransactionId(paymentRequest);
     }
 
     @Test

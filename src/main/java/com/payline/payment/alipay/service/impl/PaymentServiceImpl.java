@@ -4,6 +4,7 @@ import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
 import com.payline.payment.alipay.bean.object.ForexService;
 import com.payline.payment.alipay.bean.request.CreateForexTrade;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.service.PartnerTransactionIdService;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.SignatureUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
@@ -29,6 +30,7 @@ import static com.payline.payment.alipay.bean.object.ForexService.CREATE_FOREX_T
 public class PaymentServiceImpl implements PaymentService {
     private static final Logger LOGGER = LogManager.getLogger(PaymentServiceImpl.class);
     private SignatureUtils signatureUtils = SignatureUtils.getInstance();
+    private PartnerTransactionIdService partnerTransactionIdService = PartnerTransactionIdService.getInstance();
 
     @Override
     public PaymentResponse paymentRequest(PaymentRequest paymentRequest) {
@@ -51,7 +53,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .aCreateForexTrade()
                     .withCurrency(paymentRequest.getOrder().getAmount().getCurrency().getCurrencyCode())
                     .withNotifyUrl(paymentRequest.getEnvironment().getNotificationURL())
-                    .withOutTradeNo(paymentRequest.getTransactionId())
+                    .withOutTradeNo(partnerTransactionIdService.retrievePartnerTransactionId(paymentRequest))
                     .withPartner(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue())
                     .withProductCode(productCode)
                     .withReferUrl(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_URL).getValue())
