@@ -30,7 +30,7 @@ class PartnerTransactionIdServiceTest {
 
         doReturn(partnerTransactionId).when(underTest).computeEdelPartnerTransactionId(paymentRequest);
 
-        final String result = underTest.retreivePartnerTransactionId(paymentRequest);
+        final String result = underTest.retrievePartnerTransactionId(paymentRequest);
 
         assertEquals(partnerTransactionId, result);
     }
@@ -41,7 +41,7 @@ class PartnerTransactionIdServiceTest {
         paymentRequest.getContractConfiguration().getContractProperties()
                 .put(ContractConfigurationKeys.PARTNER_TRANSACTION_ID, new ContractProperty(PartnerTransactionIdOptions.ORDER_REFERENCE.name()));
 
-        final String result = underTest.retreivePartnerTransactionId(paymentRequest);
+        final String result = underTest.retrievePartnerTransactionId(paymentRequest);
 
         assertEquals(paymentRequest.getOrder().getReference(), result);
     }
@@ -58,5 +58,35 @@ class PartnerTransactionIdServiceTest {
         final String partnerTransactionId = underTest.computeEdelPartnerTransactionId(paymentRequest);
 
         assertEquals("A000CAFE03039140ED80032ED93CE20C", partnerTransactionId);
+
+        // A 000CAFE 03039 140ED8 003 2ED93CE20C
+
+        final Long expectedTID = Long.parseLong(transactionIdDecimal.substring(transactionIdDecimal.length() - 7));
+        final String tidSubstring = partnerTransactionId.substring(1, 8);
+        assertEquals(tidSubstring, "000CAFE");
+        assertEquals(expectedTID, hexToDec(tidSubstring));
+
+        final Long expectedMerchantBankCode = 12345L;
+        final String merchantBankCodeSubstring = partnerTransactionId.substring(8, 13);
+        assertEquals(merchantBankCodeSubstring, "03039");
+        assertEquals(expectedMerchantBankCode, hexToDec(merchantBankCodeSubstring));
+
+        final Long expectedContractCode = 1314520L;
+        final String contractCodeSubstring = partnerTransactionId.substring(13, 19);
+        assertEquals(contractCodeSubstring, "140ED8");
+        assertEquals(expectedContractCode, hexToDec(contractCodeSubstring));
+
+        final String terminalSubstring = partnerTransactionId.substring(19, 22);
+        assertEquals(terminalSubstring, "003");
+        assertEquals(3L, hexToDec(terminalSubstring));
+
+        final long expectedDate = 201213141516L;
+        final String dateSubstring = partnerTransactionId.substring(22);
+        assertEquals(dateSubstring, "2ED93CE20C");
+        assertEquals(expectedDate, hexToDec(dateSubstring));
+    }
+
+    private Long hexToDec(final String hex) {
+        return Long.parseLong(hex, 16);
     }
 }

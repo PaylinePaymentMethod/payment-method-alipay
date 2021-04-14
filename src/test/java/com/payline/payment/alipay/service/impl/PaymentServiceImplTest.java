@@ -59,7 +59,7 @@ class PaymentServiceImplTest {
         Assertions.assertNotNull(url);
         Assertions.assertEquals("https://mapi.alipaydev.com/gateway.do?foo=bar&foo2=baz", url.toString());
 
-        verify(partnerTransactionIdService).retreivePartnerTransactionId(paymentRequest);
+        verify(partnerTransactionIdService).retrievePartnerTransactionId(paymentRequest);
     }
 
     @Test

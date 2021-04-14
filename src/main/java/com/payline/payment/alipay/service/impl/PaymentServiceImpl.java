@@ -53,7 +53,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .aCreateForexTrade()
                     .withCurrency(paymentRequest.getOrder().getAmount().getCurrency().getCurrencyCode())
                     .withNotifyUrl(paymentRequest.getEnvironment().getNotificationURL())
-                    .withOutTradeNo(partnerTransactionIdService.retreivePartnerTransactionId(paymentRequest))
+                    .withOutTradeNo(partnerTransactionIdService.retrievePartnerTransactionId(paymentRequest))
                     .withPartner(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue())
                     .withProductCode(productCode)
                     .withReferUrl(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_URL).getValue())
