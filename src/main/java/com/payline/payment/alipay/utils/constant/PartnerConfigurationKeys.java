@@ -12,6 +12,7 @@ public class PartnerConfigurationKeys {
     public static final String PARTNER_ID = "PARTNER_ID";
     public static final String MERCHANT_ID = "MERCHANT_ID";
     public static final String STORE_ID = "STORE_ID";
+    public static final String TERMINAL_NUMBER = "TERMINAL_NUMBER";
 
     /* empty constructor to please Sonar */
     private PartnerConfigurationKeys(){}

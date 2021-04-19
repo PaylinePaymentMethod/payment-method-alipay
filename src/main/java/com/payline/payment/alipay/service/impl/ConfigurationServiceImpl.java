@@ -3,6 +3,7 @@ package com.payline.payment.alipay.service.impl;
 import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
 import com.payline.payment.alipay.bean.request.SingleTradeQuery;
 import com.payline.payment.alipay.bean.response.APIResponse;
+import com.payline.payment.alipay.enumeration.PartnerTransactionIdOptions;
 import com.payline.payment.alipay.exception.PluginException;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
@@ -103,6 +104,17 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         parameters.add(merchantBankCode);
 
 
+        final ListBoxParameter partnerTransactionIdListBoxParameter = new ListBoxParameter();
+        partnerTransactionIdListBoxParameter.setKey(ContractConfigurationKeys.PARTNER_TRANSACTION_ID);
+        partnerTransactionIdListBoxParameter.setLabel(i18n.getMessage("contract.partnerTransactionId.label", locale));
+        partnerTransactionIdListBoxParameter.setDescription(i18n.getMessage("contract.partnerTransactionId.description", locale));
+        final Map<String, String> partnerTransactionIdMap = new HashMap<>();
+        for (final PartnerTransactionIdOptions partnerTransactionIdOption : PartnerTransactionIdOptions.values()) {
+            partnerTransactionIdMap.put(partnerTransactionIdOption.name(), i18n.getMessage(partnerTransactionIdOption.getI18nKey(), locale));
+        }
+        partnerTransactionIdListBoxParameter.setList(partnerTransactionIdMap);
+        partnerTransactionIdListBoxParameter.setRequired(true);
+        parameters.add(partnerTransactionIdListBoxParameter);
         return parameters;
     }
 

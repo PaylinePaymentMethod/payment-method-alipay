@@ -1,6 +1,7 @@
 package com.payline.payment.alipay;
 
 import com.payline.payment.alipay.bean.object.Trade;
+import com.payline.payment.alipay.enumeration.PartnerTransactionIdOptions;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.constant.PartnerConfigurationKeys;
 import com.payline.payment.alipay.utils.http.StringResponse;
@@ -131,6 +132,7 @@ public class MockUtils {
         partnerConfigurationMap.put(PartnerConfigurationKeys.SCHEME, "ALIPAY");
         partnerConfigurationMap.put(PartnerConfigurationKeys.MESSAGE_SENDER_ID, "Payline");
         partnerConfigurationMap.put(PartnerConfigurationKeys.PARTNER_ID, "partnerId");
+        partnerConfigurationMap.put(PartnerConfigurationKeys.TERMINAL_NUMBER, "003");
         Map<String, String> sensitiveConfigurationMap = new HashMap<>();
 
         return new PartnerConfiguration(partnerConfigurationMap, sensitiveConfigurationMap);
@@ -172,6 +174,7 @@ public class MockUtils {
         contractProperties.put(ContractConfigurationKeys.SECONDARY_MERCHANT_INDUSTRY, new ContractProperty("5499"));
         contractProperties.put(ContractConfigurationKeys.MERCHANT_BANK, new ContractProperty("123456"));
         contractProperties.put(ContractConfigurationKeys.MERCHANT_BANK_CODE, new ContractProperty("12345"));
+        contractProperties.put(ContractConfigurationKeys.PARTNER_TRANSACTION_ID, new ContractProperty(PartnerTransactionIdOptions.ORDER_REFERENCE.name()));
         return new ContractConfiguration("Alipay", contractProperties);
     }
 
