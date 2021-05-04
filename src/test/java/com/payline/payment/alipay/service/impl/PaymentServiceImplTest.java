@@ -2,6 +2,7 @@ package com.payline.payment.alipay.service.impl;
 
 import com.payline.payment.alipay.MockUtils;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.service.AcquirerService;
 import com.payline.payment.alipay.service.PartnerTransactionIdService;
 import com.payline.payment.alipay.utils.SignatureUtils;
 import com.payline.payment.alipay.utils.constant.PartnerConfigurationKeys;
@@ -25,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
 class PaymentServiceImplTest {
@@ -37,6 +39,9 @@ class PaymentServiceImplTest {
     @Mock
     private PartnerTransactionIdService partnerTransactionIdService;
 
+    @Mock
+    private AcquirerService acquirerService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
@@ -48,6 +53,7 @@ class PaymentServiceImplTest {
         params.put("foo", "bar");
         params.put("foo2", "baz");
         Mockito.doReturn(params).when(signatureUtils).getSignedParameters(any(), any());
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         final PaymentRequest paymentRequest = MockUtils.aPaylinePaymentRequest();
 
@@ -68,6 +74,7 @@ class PaymentServiceImplTest {
         params.put("foo", "bar");
         params.put("foo2", "baz");
         Mockito.doReturn(params).when(signatureUtils).getSignedParameters(any(), any());
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         PaymentResponse response = underTest.paymentRequest(MockUtils.aPaylinePaymentRequestBuilder().withBrowser(Browser.BrowserBuilder.aBrowser().withUserAgent("Mobile Safari").build()).build());
 
@@ -81,6 +88,7 @@ class PaymentServiceImplTest {
     @Test
     void paymentRequestMalformedURLException() {
         Mockito.doReturn(new HashMap<String,String>()).when(signatureUtils).getSignedParameters(any(), any());
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         PaymentRequest.Builder aPaylinePaymentRequest = MockUtils.aPaylinePaymentRequestBuilder().withPartnerConfiguration(MockUtils.aPartnerConfigurationMalformedURLException());
         PaymentResponse response = underTest.paymentRequest(aPaylinePaymentRequest.build());
@@ -97,6 +105,7 @@ class PaymentServiceImplTest {
                 .withPartnerConfiguration(new PartnerConfiguration(new HashMap<>(), new HashMap<>()))
                 .build();
         Mockito.doReturn(new HashMap<String,String>()).when(signatureUtils).getSignedParameters(any(), any());
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         PaymentResponse response = underTest.paymentRequest(paymentRequest);
 
@@ -110,6 +119,7 @@ class PaymentServiceImplTest {
     void paymentRequestPluginException() {
         PluginException e = new PluginException("thisIsAmessage", FailureCause.CANCEL);
         Mockito.doThrow(e).when(signatureUtils).getSignedParameters(any(), any());
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         PaymentRequest.Builder aPaylinePaymentRequest = MockUtils.aPaylinePaymentRequestBuilder().withPartnerConfiguration(MockUtils.aPartnerConfigurationMalformedURLException());
         PaymentResponse response = underTest.paymentRequest(aPaylinePaymentRequest.build());
@@ -124,6 +134,7 @@ class PaymentServiceImplTest {
     void paymentRequestRuntimeException() {
         NullPointerException e = new NullPointerException("thisIsAmessage");
         Mockito.doThrow(e).when(signatureUtils).getSignedParameters(any(), any());
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         PaymentRequest.Builder aPaylinePaymentRequest = MockUtils.aPaylinePaymentRequestBuilder().withPartnerConfiguration(MockUtils.aPartnerConfigurationMalformedURLException());
         PaymentResponse response = underTest.paymentRequest(aPaylinePaymentRequest.build());

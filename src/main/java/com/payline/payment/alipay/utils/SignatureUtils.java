@@ -3,6 +3,8 @@ package com.payline.payment.alipay.utils;
 import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
 import com.payline.payment.alipay.exception.InvalidDataException;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.service.AcquirerService;
+import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.constant.PartnerConfigurationKeys;
 
 import java.nio.charset.StandardCharsets;
@@ -24,6 +26,8 @@ public class SignatureUtils {
     private static final String INVALID_ALGORITHM = "Invalid algorithm";
     private static final String INVALID_KEYS_SPEC = "Invalid KeySpec";
     private static final String INVALID_SIGNATURE = "Unable to verify the signature";
+    private AcquirerService acquirerService = AcquirerService.getInstance();
+
 
 
     private static class Holder {
@@ -152,13 +156,14 @@ public class SignatureUtils {
     PublicKey getPublicKey(RequestConfiguration configuration) {
         try {
             // check if privateKey exists in partnerConfiguration
-            String sKey = configuration.getPartnerConfiguration().getProperty(PartnerConfigurationKeys.PUBLIC_KEY);
-            if (PluginUtils.isEmpty(sKey)) {
+            final String alipayPublicKey = acquirerService.retrieveAcquirer(configuration.getPluginConfiguration(),
+                    configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.ACQUIRER_ID).getValue()).getAlipayPublicKey();
+            if (PluginUtils.isEmpty(alipayPublicKey)) {
                 throw new InvalidDataException("Missing public key from partner configuration");
             }
 
             // extract byte key
-            String publicKey = sKey.replace("-----BEGIN PUBLIC KEY-----", "")
+            String publicKey = alipayPublicKey.replace("-----BEGIN PUBLIC KEY-----", "")
                     .replace("-----END PUBLIC KEY-----", "")
                     .replace("\n", "");
             byte[] decoded = Base64.getDecoder().decode(publicKey);

@@ -4,6 +4,7 @@ import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
 import com.payline.payment.alipay.bean.object.ForexService;
 import com.payline.payment.alipay.bean.request.CreateForexTrade;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.service.AcquirerService;
 import com.payline.payment.alipay.service.PartnerTransactionIdService;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.SignatureUtils;
@@ -31,6 +32,7 @@ public class PaymentServiceImpl implements PaymentService {
     private static final Logger LOGGER = LogManager.getLogger(PaymentServiceImpl.class);
     private SignatureUtils signatureUtils = SignatureUtils.getInstance();
     private PartnerTransactionIdService partnerTransactionIdService = PartnerTransactionIdService.getInstance();
+    private AcquirerService acquirerService = AcquirerService.getInstance();
 
     @Override
     public PaymentResponse paymentRequest(PaymentRequest paymentRequest) {
@@ -48,13 +50,15 @@ public class PaymentServiceImpl implements PaymentService {
                 productCode = "NEW_OVERSEAS_SELLER";
             }
             final ContractConfiguration contractConfiguration = paymentRequest.getContractConfiguration();
+            final String merchantPID = acquirerService.retrieveAcquirer(configuration.getPluginConfiguration(),
+                    configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.ACQUIRER_ID).getValue()).getMerchantPID();
             // create createForexTrade request object
             CreateForexTrade createForexTrade = CreateForexTrade.CreateForexTradeBuilder
                     .aCreateForexTrade()
                     .withCurrency(paymentRequest.getOrder().getAmount().getCurrency().getCurrencyCode())
                     .withNotifyUrl(paymentRequest.getEnvironment().getNotificationURL())
                     .withOutTradeNo(partnerTransactionIdService.retrievePartnerTransactionId(paymentRequest))
-                    .withPartner(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue())
+                    .withPartner(merchantPID)
                     .withProductCode(productCode)
                     .withReferUrl(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_URL).getValue())
                     .withReturnUrl(paymentRequest.getEnvironment().getRedirectionReturnURL())

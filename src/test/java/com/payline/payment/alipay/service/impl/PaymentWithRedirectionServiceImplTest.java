@@ -6,8 +6,8 @@ import com.payline.payment.alipay.bean.object.ForexService;
 import com.payline.payment.alipay.bean.object.Trade;
 import com.payline.payment.alipay.bean.response.APIResponse;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.service.AcquirerService;
 import com.payline.payment.alipay.utils.SignatureUtils;
-import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.constant.RequestContextKeys;
 import com.payline.payment.alipay.utils.http.HttpClient;
 import com.payline.pmapi.bean.common.FailureCause;
@@ -46,6 +46,9 @@ class PaymentWithRedirectionServiceImplTest {
     @Mock(answer = RETURNS_DEEP_STUBS)
     private APIResponse apiResponse;
 
+    @Mock
+    private AcquirerService acquirerService;
+
     @Captor
     private ArgumentCaptor<RequestConfiguration> requestConfigurationArgumentCaptor1;
 
@@ -72,6 +75,7 @@ class PaymentWithRedirectionServiceImplTest {
                 .withContractConfiguration(contractConfiguration)
                 .withEnvironment(MockUtils.anEnvironment())
                 .withPartnerConfiguration(partnerConfiguration)
+                .withPluginConfiguration(MockUtils.PLUGIN_CONFIGURATION)
                 .withAmount(MockUtils.aPaylineAmount())
                 .withOrder(MockUtils.aPaylineOrder())
                 .withBuyer(MockUtils.aBuyer())
@@ -116,6 +120,7 @@ class PaymentWithRedirectionServiceImplTest {
                 .withContractConfiguration(contractConfiguration)
                 .withEnvironment(MockUtils.anEnvironment())
                 .withPartnerConfiguration(partnerConfiguration)
+                .withPluginConfiguration(MockUtils.PLUGIN_CONFIGURATION)
                 .withAmount(MockUtils.aPaylineAmount())
                 .withOrder(MockUtils.aPaylineOrder())
                 .withBuyer(MockUtils.aBuyer())
@@ -147,6 +152,7 @@ class PaymentWithRedirectionServiceImplTest {
                 .withContractConfiguration(contractConfiguration)
                 .withEnvironment(MockUtils.anEnvironment())
                 .withPartnerConfiguration(partnerConfiguration)
+                .withPluginConfiguration(MockUtils.PLUGIN_CONFIGURATION)
                 .withAmount(MockUtils.aPaylineAmount())
                 .withOrder(MockUtils.aPaylineOrder())
                 .withBuyer(MockUtils.aBuyer())
@@ -180,9 +186,10 @@ class PaymentWithRedirectionServiceImplTest {
         final ContractConfiguration contractConfiguration = MockUtils.aContractConfiguration();
         final PartnerConfiguration partnerConfiguration = MockUtils.aPartnerConfiguration();
         final RequestConfiguration requestConfiguration = new RequestConfiguration(contractConfiguration,
-                MockUtils.anEnvironment(), partnerConfiguration);
+                MockUtils.anEnvironment(), partnerConfiguration, MockUtils.PLUGIN_CONFIGURATION);
         final String transactionId = "transactionId";
         final String buyerId = "buyerId";
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
         doReturn(apiResponse).when(httpClient).get(eq(requestConfiguration), parametersMapArgumentCaptor.capture());
         doReturn(true).when(apiResponse).isSuccess();
         when(apiResponse.getResponse().getTrade().getTradeStatus()).thenReturn(Trade.TradeStatus.TRADE_FINISHED);
@@ -201,7 +208,7 @@ class PaymentWithRedirectionServiceImplTest {
         final Map<String, String> parametersMap = parametersMapArgumentCaptor.getValue();
         assertEquals(4, parametersMap.size());
         assertEquals(transactionId, parametersMap.get("out_trade_no"));
-        assertEquals(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue(), parametersMap.get("partner"));
+        assertEquals("merchantPID", parametersMap.get("partner"));
         assertEquals("UTF-8", parametersMap.get("_input_charset"));
         assertEquals(ForexService.SINGLE_TRADE_QUERY.getService(), parametersMap.get("service"));
     }
@@ -211,8 +218,9 @@ class PaymentWithRedirectionServiceImplTest {
         final ContractConfiguration contractConfiguration = MockUtils.aContractConfiguration();
         final PartnerConfiguration partnerConfiguration = MockUtils.aPartnerConfiguration();
         final RequestConfiguration requestConfiguration = new RequestConfiguration(contractConfiguration,
-                MockUtils.anEnvironment(), partnerConfiguration);
+                MockUtils.anEnvironment(), partnerConfiguration, MockUtils.PLUGIN_CONFIGURATION);
         final String transactionId = "transactionId";
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
         doReturn(apiResponse).when(httpClient).get(eq(requestConfiguration), any());
         doReturn(true).when(apiResponse).isSuccess();
         when(apiResponse.getResponse().getTrade().getTradeStatus()).thenReturn(Trade.TradeStatus.WAIT_BUYER_PAY);
@@ -230,8 +238,9 @@ class PaymentWithRedirectionServiceImplTest {
         final ContractConfiguration contractConfiguration = MockUtils.aContractConfiguration();
         final PartnerConfiguration partnerConfiguration = MockUtils.aPartnerConfiguration();
         final RequestConfiguration requestConfiguration = new RequestConfiguration(contractConfiguration,
-                MockUtils.anEnvironment(), partnerConfiguration);
+                MockUtils.anEnvironment(), partnerConfiguration, MockUtils.PLUGIN_CONFIGURATION);
         final String transactionId = "transactionId";
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
         doReturn(apiResponse).when(httpClient).get(eq(requestConfiguration), any());
         doReturn(true).when(apiResponse).isSuccess();
         when(apiResponse.getResponse().getTrade().getTradeStatus()).thenReturn(Trade.TradeStatus.TRADE_CLOSED);
@@ -249,9 +258,10 @@ class PaymentWithRedirectionServiceImplTest {
         final ContractConfiguration contractConfiguration = MockUtils.aContractConfiguration();
         final PartnerConfiguration partnerConfiguration = MockUtils.aPartnerConfiguration();
         final RequestConfiguration requestConfiguration = new RequestConfiguration(contractConfiguration,
-                MockUtils.anEnvironment(), partnerConfiguration);
+                MockUtils.anEnvironment(), partnerConfiguration, MockUtils.PLUGIN_CONFIGURATION);
         final String transactionId = "transactionId";
         final String error = "error";
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
         doReturn(apiResponse).when(httpClient).get(eq(requestConfiguration), any());
         doReturn(false).when(apiResponse).isSuccess();
         when(apiResponse.getError()).thenReturn(error);

@@ -1,16 +1,12 @@
 package com.payline.payment.alipay.utils.http;
 
 import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
-import com.payline.payment.alipay.bean.request.EndTransactionNotificationRequest;
 import com.payline.payment.alipay.bean.response.APIResponse;
-import com.payline.payment.alipay.bean.response.NotifyResponse;
 import com.payline.payment.alipay.exception.InvalidDataException;
 import com.payline.payment.alipay.exception.PluginException;
-import com.payline.payment.alipay.utils.EndTransactionNotificationUtils;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.SignatureUtils;
 import com.payline.payment.alipay.utils.business.ErrorUtils;
-import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.constant.PartnerConfigurationKeys;
 import com.payline.pmapi.bean.common.FailureCause;
 import com.payline.pmapi.logger.LogManager;
@@ -18,18 +14,15 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
-import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.logging.log4j.Logger;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -107,36 +100,6 @@ public class HttpClient {
         return strResponse;
     }
 
-
-    /**
-     * Build and send request to verify a notification by its id
-     * Verification is done by calling an Alipay's service
-     *
-     * @param requestConfiguration
-     * @param params
-     */
-    public NotifyResponse notificationIsVerified(RequestConfiguration requestConfiguration, Map<String, String> params) {
-        try {
-            // Create the HttpGet url with parameters
-            URI baseUrl = constructURL(requestConfiguration);
-            List<NameValuePair> list = fromMap(signatureUtils.getSignedParameters(requestConfiguration, params));
-            URI uri = new URIBuilder(baseUrl)
-                    .setParameters(list)
-                    .build();
-
-            // Create the HttpGet request
-            HttpGet httpGet = new HttpGet(uri);
-            httpGet.setConfig(createHttpRequestConfig(requestConfiguration));
-
-            // Execute request
-            StringResponse response = this.execute(httpGet);
-            return NotifyResponse.valueOf(response.getContent().toUpperCase());
-
-        } catch (URISyntaxException e) {
-            throw new InvalidDataException("Syntax Exception", e);
-        }
-    }
-
     /**
      * Build and send a GET request
      *
@@ -168,33 +131,6 @@ public class HttpClient {
             return apiResponse;
 
         } catch (URISyntaxException e) {
-            throw new InvalidDataException("Syntax Exception", e);
-        }
-    }
-
-
-    /**
-     * Send post request with notification data
-     *
-     * @param requestConfiguration
-     * @param endTransactionNotificationRequest
-     * @return StringResponse
-     */
-    public StringResponse sendNotificationMonext(RequestConfiguration requestConfiguration, EndTransactionNotificationRequest endTransactionNotificationRequest) {
-        try {
-            URI baseUrl = new URI(requestConfiguration.getContractConfiguration().getProperty(ContractConfigurationKeys.NOTIFICATION_URL).getValue());
-            // Create the httpPost request
-            StringEntity entity = new StringEntity(EndTransactionNotificationUtils.toJson(endTransactionNotificationRequest));
-            HttpPost httpPost = new HttpPost(baseUrl);
-            httpPost.setEntity(entity);
-            httpPost.setHeader("Accept", "application/json");
-            httpPost.setHeader("Content-type", "application/json");
-            httpPost.setConfig(createHttpRequestConfig(requestConfiguration));
-
-            // Execute request
-            return this.execute(httpPost);
-
-        } catch (URISyntaxException | UnsupportedEncodingException e) {
             throw new InvalidDataException("Syntax Exception", e);
         }
     }

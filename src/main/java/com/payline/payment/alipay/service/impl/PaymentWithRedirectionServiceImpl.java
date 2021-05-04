@@ -7,6 +7,7 @@ import com.payline.payment.alipay.bean.request.SingleTradeQuery;
 import com.payline.payment.alipay.bean.response.APIResponse;
 import com.payline.payment.alipay.exception.InvalidDataException;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.service.AcquirerService;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.SignatureUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
@@ -36,13 +37,15 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
     // Variables non finales pour l'injection par mockito
     private HttpClient client = HttpClient.getInstance();
     private SignatureUtils signatureUtils = SignatureUtils.getInstance();
+    private AcquirerService acquirerService = AcquirerService.getInstance();
 
     @Override
     public PaymentResponse finalizeRedirectionPayment(final RedirectionPaymentRequest request) {
         PaymentResponse paymentResponse;
 
         try {
-            final RequestConfiguration configuration = new RequestConfiguration(request.getContractConfiguration(), request.getEnvironment(), request.getPartnerConfiguration());
+            final RequestConfiguration configuration = new RequestConfiguration(request.getContractConfiguration(), request.getEnvironment(),
+                    request.getPartnerConfiguration(), request.getPluginConfiguration());
 
             final Map<String, String> alipayReturnedParameters = new HashMap<>();
             if (request.getHttpRequestParametersMap() != null) {
@@ -89,9 +92,12 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
         final PaymentResponse paymentResponse;
 
         // create single_trade_query request object
+        final String merchantPID = acquirerService.retrieveAcquirer(configuration.getPluginConfiguration(),
+                configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.ACQUIRER_ID).getValue()).getMerchantPID();
+
         final SingleTradeQuery singleTradeQuery = SingleTradeQuery.SingleTradeQueryBuilder.aSingleTradeQuery()
                 .withOutTradeNo(transactionId)
-                .withPartner(configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue())
+                .withPartner(merchantPID)
                 .withService(ForexService.SINGLE_TRADE_QUERY)
                 .build();
 

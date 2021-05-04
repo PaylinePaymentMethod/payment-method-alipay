@@ -1,10 +1,12 @@
 package com.payline.payment.alipay.service.impl;
 
+import com.payline.payment.alipay.bean.configuration.Acquirer;
 import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
 import com.payline.payment.alipay.bean.request.SingleTradeQuery;
 import com.payline.payment.alipay.bean.response.APIResponse;
 import com.payline.payment.alipay.enumeration.PartnerTransactionIdOptions;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.service.AcquirerService;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.http.HttpClient;
@@ -15,6 +17,7 @@ import com.payline.pmapi.bean.configuration.parameter.AbstractParameter;
 import com.payline.pmapi.bean.configuration.parameter.impl.InputParameter;
 import com.payline.pmapi.bean.configuration.parameter.impl.ListBoxParameter;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
+import com.payline.pmapi.bean.configuration.request.ContractParametersRequest;
 import com.payline.pmapi.logger.LogManager;
 import com.payline.pmapi.service.ConfigurationService;
 import org.apache.logging.log4j.Logger;
@@ -33,18 +36,31 @@ public class ConfigurationServiceImpl implements ConfigurationService {
     private I18nService i18n = I18nService.getInstance();
     private ReleaseProperties releaseProperties = ReleaseProperties.getInstance();
     private HttpClient client = HttpClient.getInstance();
+    private AcquirerService acquirerService = AcquirerService.getInstance();
 
     @Override
-    public List<AbstractParameter> getParameters(Locale locale) {
+    public List<AbstractParameter> getParameters(final Locale locale) {
+        throw new IllegalStateException("Method not allowed");
+    }
+
+    @Override
+    public List<AbstractParameter> getParameters(final ContractParametersRequest request) {
+        final Locale locale = request.getLocale();
         List<AbstractParameter> parameters = new ArrayList<>();
 
-        // MERCHANT_PID
-        InputParameter partnerId = new InputParameter();
-        partnerId.setKey(ContractConfigurationKeys.MERCHANT_PID);
-        partnerId.setLabel(i18n.getMessage("contract.MERCHANT_PID.label", locale));
-        partnerId.setDescription(i18n.getMessage("contract.MERCHANT_PID.description", locale));
-        partnerId.setRequired(true);
-        parameters.add(partnerId);
+        // ACQUIRER
+        final List<Acquirer> acquirers = acquirerService.retrieveAcquirers(request.getPluginConfiguration());
+        final ListBoxParameter acquirerListBoxParameter = new ListBoxParameter();
+        acquirerListBoxParameter.setKey(ContractConfigurationKeys.ACQUIRER_ID);
+        acquirerListBoxParameter.setLabel(i18n.getMessage("contract.acquirer.label", locale));
+        acquirerListBoxParameter.setDescription(i18n.getMessage("contract.acquirer.description", locale));
+        final Map<String, String> acquirerMap = new HashMap<>();
+        for (final Acquirer acquirer : acquirers) {
+            acquirerMap.put(acquirer.getId(), acquirer.getLabel());
+        }
+        acquirerListBoxParameter.setList(acquirerMap);
+        acquirerListBoxParameter.setRequired(true);
+        parameters.add(acquirerListBoxParameter);
 
         // SUPPLIER
         InputParameter supplier = new InputParameter();
@@ -87,14 +103,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         merchantUrl.setRequired(false);
         parameters.add(merchantUrl);
 
-        // merchant Bank
-        InputParameter merchantBank = new InputParameter();
-        merchantBank.setKey(ContractConfigurationKeys.MERCHANT_BANK);
-        merchantBank.setLabel(i18n.getMessage("contract.MERCHANT_BANK.label", locale));
-        merchantBank.setDescription(i18n.getMessage("contract.MERCHANT_BANK.description", locale));
-        merchantBank.setRequired(true);
-        parameters.add(merchantBank);
-
         // merchant bank code
         InputParameter merchantBankCode = new InputParameter();
         merchantBankCode.setKey(ContractConfigurationKeys.MERCHANT_BANK_CODE);
@@ -128,7 +136,11 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         Locale locale = contractParametersCheckRequest.getLocale();
 
         // check required fields
-        for (AbstractParameter param : this.getParameters(locale)) {
+        final ContractParametersRequest contractParametersRequest = ContractParametersRequest.builder()
+                .pluginConfiguration(contractParametersCheckRequest.getPluginConfiguration())
+                .locale(locale)
+                .build();
+        for (AbstractParameter param : this.getParameters(contractParametersRequest)) {
             if (param.isRequired() && PluginUtils.isEmpty(accountInfo.get(param.getKey()))) {
                 String message = i18n.getMessage(I18N_CONTRACT_PREFIX + param.getKey() + ".requiredError", locale);
                 errors.put(param.getKey(), message);
@@ -141,19 +153,19 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
 
         // check the length of some fields
-        if (accountInfo.get(ContractConfigurationKeys.MERCHANT_BANK).length() != 6) {
-            errors.put(ContractConfigurationKeys.MERCHANT_BANK, i18n.getMessage("contract.MERCHANT_BANK.badLength", locale));
-        }
+
         if (accountInfo.get(ContractConfigurationKeys.MERCHANT_BANK_CODE).length() != 5) {
-            errors.put(ContractConfigurationKeys.MERCHANT_BANK, i18n.getMessage("contract.MERCHANT_BANK_CODE.badLength", locale));
+            errors.put(ContractConfigurationKeys.MERCHANT_BANK_CODE, i18n.getMessage("contract.MERCHANT_BANK_CODE.badLength", locale));
         }
 
         try {
+
+            final String merchantPID = acquirerService.retrieveAcquirer(contractParametersCheckRequest.getPluginConfiguration(), accountInfo.get(ContractConfigurationKeys.ACQUIRER_ID)).getMerchantPID();
             // create a fake single_trade_query request object with a wrong transactionId
             SingleTradeQuery singleTradeQuery = SingleTradeQuery.SingleTradeQueryBuilder
                     .aSingleTradeQuery()
                     .withOutTradeNo("0")
-                    .withPartner(accountInfo.get(ContractConfigurationKeys.MERCHANT_PID))
+                    .withPartner(merchantPID)
                     .withService(SINGLE_TRADE_QUERY)
                     .build();
 
@@ -162,7 +174,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
             // response should not be successful
             if ("ILLEGAL_PARTNER".equalsIgnoreCase(response.getError())) {
-                errors.put(ContractConfigurationKeys.MERCHANT_PID, response.getError());
+                errors.put(ContractConfigurationKeys.ACQUIRER_ID, response.getError());
             } else if (!"TRADE_NOT_EXIST".equalsIgnoreCase(response.getError())) {
                 errors.put(GENERIC_ERROR, response.getError());
             }
