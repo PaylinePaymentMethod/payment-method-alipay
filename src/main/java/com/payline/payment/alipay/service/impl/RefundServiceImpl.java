@@ -3,6 +3,7 @@ package com.payline.payment.alipay.service.impl;
 import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
 import com.payline.payment.alipay.bean.request.ForexRefund;
 import com.payline.payment.alipay.exception.PluginException;
+import com.payline.payment.alipay.service.AcquirerService;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.http.HttpClient;
@@ -22,6 +23,8 @@ import static com.payline.payment.alipay.bean.object.ForexService.FOREX_REFUND;
 public class RefundServiceImpl implements RefundService {
     private static final Logger LOGGER = LogManager.getLogger(RefundServiceImpl.class);
     private HttpClient client = HttpClient.getInstance();
+    private AcquirerService acquirerService = AcquirerService.getInstance();
+
 
     @Override
     public RefundResponse refundRequest(RefundRequest refundRequest) {
@@ -30,6 +33,8 @@ public class RefundServiceImpl implements RefundService {
             RequestConfiguration configuration = RequestConfiguration.build(refundRequest);
 
             // create ForexRefund request object
+            final String merchantPID = acquirerService.fetchAcquirer(configuration.getPluginConfiguration(),
+                    configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.ACQUIRER_ID).getValue()).getMerchantPID();
             ForexRefund forexRefund = ForexRefund.ForexRefundBuilder
                     .aForexRefund()
                     .withCurrency(refundRequest.getAmount().getCurrency().getCurrencyCode())
@@ -37,7 +42,7 @@ public class RefundServiceImpl implements RefundService {
                     .withIsSync("Y")
                     .withOutReturnNo(refundRequest.getTransactionId())  // refund Id
                     .withOutTradeNo(refundRequest.getPartnerTransactionId())   // transaction Id
-                    .withPartner(refundRequest.getContractConfiguration().getProperty(ContractConfigurationKeys.MERCHANT_PID).getValue())
+                    .withPartner(merchantPID)
                     .withProductCode("NEW_OVERSEAS_SELLER")
                     .withReturnAmount(PluginUtils.createStringAmount(refundRequest.getAmount()))
                     .withService(FOREX_REFUND)
