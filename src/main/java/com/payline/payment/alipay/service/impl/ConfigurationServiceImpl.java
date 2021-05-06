@@ -55,9 +55,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         acquirerListBoxParameter.setLabel(i18n.getMessage("contract.acquirer.label", locale));
         acquirerListBoxParameter.setDescription(i18n.getMessage("contract.acquirer.description", locale));
         final Map<String, String> acquirerMap = new HashMap<>();
-        for (final Acquirer acquirer : acquirers) {
-            acquirerMap.put(acquirer.getId(), acquirer.getLabel());
-        }
+        acquirers.forEach((acquirer->acquirerMap.put(acquirer.getId(), acquirer.getLabel())));
         acquirerListBoxParameter.setList(acquirerMap);
         acquirerListBoxParameter.setRequired(true);
         parameters.add(acquirerListBoxParameter);
@@ -160,7 +158,7 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
         try {
 
-            final String merchantPID = acquirerService.retrieveAcquirer(contractParametersCheckRequest.getPluginConfiguration(), accountInfo.get(ContractConfigurationKeys.ACQUIRER_ID)).getMerchantPID();
+            final String merchantPID = acquirerService.fetchAcquirer(contractParametersCheckRequest.getPluginConfiguration(), accountInfo.get(ContractConfigurationKeys.ACQUIRER_ID)).getMerchantPID();
             // create a fake single_trade_query request object with a wrong transactionId
             SingleTradeQuery singleTradeQuery = SingleTradeQuery.SingleTradeQueryBuilder
                     .aSingleTradeQuery()

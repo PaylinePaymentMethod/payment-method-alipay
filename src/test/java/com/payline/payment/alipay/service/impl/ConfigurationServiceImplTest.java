@@ -161,7 +161,7 @@ class ConfigurationServiceImplTest {
                 "</alipay>";
         APIResponse mockResponse = APIResponse.fromXml(xml);
         doReturn(mockResponse).when(httpClient).get(any(RequestConfiguration.class), anyMap());
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
 
         // when: checking the configuration

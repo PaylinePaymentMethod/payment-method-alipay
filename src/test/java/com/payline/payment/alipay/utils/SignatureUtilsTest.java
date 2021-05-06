@@ -45,7 +45,7 @@ class SignatureUtilsTest {
 
     @Test
     void getPublicKey(){
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         PublicKey key = underTest.getPublicKey(config);
 

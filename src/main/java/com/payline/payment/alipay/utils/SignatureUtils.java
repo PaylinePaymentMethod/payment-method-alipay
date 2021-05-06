@@ -156,7 +156,7 @@ public class SignatureUtils {
     PublicKey getPublicKey(RequestConfiguration configuration) {
         try {
             // check if privateKey exists in partnerConfiguration
-            final String alipayPublicKey = acquirerService.retrieveAcquirer(configuration.getPluginConfiguration(),
+            final String alipayPublicKey = acquirerService.fetchAcquirer(configuration.getPluginConfiguration(),
                     configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.ACQUIRER_ID).getValue()).getAlipayPublicKey();
             if (PluginUtils.isEmpty(alipayPublicKey)) {
                 throw new InvalidDataException("Missing public key from partner configuration");

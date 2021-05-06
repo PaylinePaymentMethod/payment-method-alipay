@@ -50,7 +50,7 @@ public class PaymentServiceImpl implements PaymentService {
                 productCode = "NEW_OVERSEAS_SELLER";
             }
             final ContractConfiguration contractConfiguration = paymentRequest.getContractConfiguration();
-            final String merchantPID = acquirerService.retrieveAcquirer(configuration.getPluginConfiguration(),
+            final String merchantPID = acquirerService.fetchAcquirer(configuration.getPluginConfiguration(),
                     configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.ACQUIRER_ID).getValue()).getMerchantPID();
             // create createForexTrade request object
             CreateForexTrade createForexTrade = CreateForexTrade.CreateForexTradeBuilder

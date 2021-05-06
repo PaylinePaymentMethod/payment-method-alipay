@@ -92,7 +92,7 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
         final PaymentResponse paymentResponse;
 
         // create single_trade_query request object
-        final String merchantPID = acquirerService.retrieveAcquirer(configuration.getPluginConfiguration(),
+        final String merchantPID = acquirerService.fetchAcquirer(configuration.getPluginConfiguration(),
                 configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.ACQUIRER_ID).getValue()).getMerchantPID();
 
         final SingleTradeQuery singleTradeQuery = SingleTradeQuery.SingleTradeQueryBuilder.aSingleTradeQuery()

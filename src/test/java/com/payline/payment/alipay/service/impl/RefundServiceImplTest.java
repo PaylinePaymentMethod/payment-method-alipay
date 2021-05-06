@@ -1,7 +1,6 @@
 package com.payline.payment.alipay.service.impl;
 
 import com.payline.payment.alipay.MockUtils;
-import com.payline.payment.alipay.bean.request.ForexRefund;
 import com.payline.payment.alipay.bean.response.APIResponse;
 import com.payline.payment.alipay.exception.PluginException;
 import com.payline.payment.alipay.service.AcquirerService;
@@ -45,7 +44,7 @@ class RefundServiceImplTest {
                 "</alipay>";
         APIResponse apiResponse = APIResponse.fromXml(xmlOk);
         doReturn(apiResponse).when(client).get(any(), forexRefundParametersArgumentCaptor.capture());
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         RefundResponse response = underTest.refundRequest(MockUtils.aPaylineRefundRequest());
         Assertions.assertEquals(RefundResponseSuccess.class, response.getClass());
@@ -62,7 +61,7 @@ class RefundServiceImplTest {
     void refundRequestPluginException() {
         PluginException e = new PluginException("foo", FailureCause.REFUSED);
         Mockito.doThrow(e).when(client).get(any(), any());
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         RefundResponse response = underTest.refundRequest(MockUtils.anInvalidPaylineRefundRequest());
         Assertions.assertEquals(RefundResponseFailure.class, response.getClass());
@@ -76,7 +75,7 @@ class RefundServiceImplTest {
     void refundRequestRuntimeException() {
         NullPointerException e = new NullPointerException("foo");
         Mockito.doThrow(e).when(client).get(any(), any());
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
 
         RefundResponse response = underTest.refundRequest(MockUtils.anInvalidPaylineRefundRequest());
         Assertions.assertEquals(RefundResponseFailure.class, response.getClass());

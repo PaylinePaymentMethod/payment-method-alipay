@@ -33,7 +33,7 @@ public class RefundServiceImpl implements RefundService {
             RequestConfiguration configuration = RequestConfiguration.build(refundRequest);
 
             // create ForexRefund request object
-            final String merchantPID = acquirerService.retrieveAcquirer(configuration.getPluginConfiguration(),
+            final String merchantPID = acquirerService.fetchAcquirer(configuration.getPluginConfiguration(),
                     configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.ACQUIRER_ID).getValue()).getMerchantPID();
             ForexRefund forexRefund = ForexRefund.ForexRefundBuilder
                     .aForexRefund()

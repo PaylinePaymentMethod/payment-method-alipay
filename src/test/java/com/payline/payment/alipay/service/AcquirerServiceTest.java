@@ -37,8 +37,8 @@ class AcquirerServiceTest {
     }
 
     @Test
-    void retrieveAcquirer() {
-        final Acquirer acquirer = underTest.retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION,"1");
+    void fetchAcquirer() {
+        final Acquirer acquirer = underTest.fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION,"1");
 
         assertNotNull(acquirer);
         assertEquals("1", acquirer.getId());
@@ -62,7 +62,7 @@ class AcquirerServiceTest {
 
     @ParameterizedTest
     @MethodSource("badPluginConfiguration")
-    void retrieveAcquirerError(final String pluginConfiguration) {
-        assertThrows(PluginException.class, () -> underTest.retrieveAcquirer(pluginConfiguration, "5"));
+    void fetchAcquirerError(final String pluginConfiguration) {
+        assertThrows(PluginException.class, () -> underTest.fetchAcquirer(pluginConfiguration, "5"));
     }
 }

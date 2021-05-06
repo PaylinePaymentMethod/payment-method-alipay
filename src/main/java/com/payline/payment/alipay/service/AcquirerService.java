@@ -46,10 +46,10 @@ public class AcquirerService {
      * @return the acquirer if found
      * @throws PluginException if the acquirer is not found
      */
-    public Acquirer retrieveAcquirer(final String pluginConfiguration, final String acquirerId) {
+    public Acquirer fetchAcquirer(final String pluginConfiguration, final String acquirerId) {
         return retrieveAcquirers(pluginConfiguration)
                 .stream()
-                .filter(acquirer -> acquirer.getId().equalsIgnoreCase(acquirerId))
+                .filter(acquirer -> acquirerId.equalsIgnoreCase(acquirer.getId()))
                 .findFirst()
                 .orElseThrow(() -> new PluginException("acquirer not found [ID] : " + acquirerId));
     }

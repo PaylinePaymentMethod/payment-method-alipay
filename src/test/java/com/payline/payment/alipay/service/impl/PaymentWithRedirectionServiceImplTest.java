@@ -189,7 +189,7 @@ class PaymentWithRedirectionServiceImplTest {
                 MockUtils.anEnvironment(), partnerConfiguration, MockUtils.PLUGIN_CONFIGURATION);
         final String transactionId = "transactionId";
         final String buyerId = "buyerId";
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
         doReturn(apiResponse).when(httpClient).get(eq(requestConfiguration), parametersMapArgumentCaptor.capture());
         doReturn(true).when(apiResponse).isSuccess();
         when(apiResponse.getResponse().getTrade().getTradeStatus()).thenReturn(Trade.TradeStatus.TRADE_FINISHED);
@@ -220,7 +220,7 @@ class PaymentWithRedirectionServiceImplTest {
         final RequestConfiguration requestConfiguration = new RequestConfiguration(contractConfiguration,
                 MockUtils.anEnvironment(), partnerConfiguration, MockUtils.PLUGIN_CONFIGURATION);
         final String transactionId = "transactionId";
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
         doReturn(apiResponse).when(httpClient).get(eq(requestConfiguration), any());
         doReturn(true).when(apiResponse).isSuccess();
         when(apiResponse.getResponse().getTrade().getTradeStatus()).thenReturn(Trade.TradeStatus.WAIT_BUYER_PAY);
@@ -240,7 +240,7 @@ class PaymentWithRedirectionServiceImplTest {
         final RequestConfiguration requestConfiguration = new RequestConfiguration(contractConfiguration,
                 MockUtils.anEnvironment(), partnerConfiguration, MockUtils.PLUGIN_CONFIGURATION);
         final String transactionId = "transactionId";
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
         doReturn(apiResponse).when(httpClient).get(eq(requestConfiguration), any());
         doReturn(true).when(apiResponse).isSuccess();
         when(apiResponse.getResponse().getTrade().getTradeStatus()).thenReturn(Trade.TradeStatus.TRADE_CLOSED);
@@ -261,7 +261,7 @@ class PaymentWithRedirectionServiceImplTest {
                 MockUtils.anEnvironment(), partnerConfiguration, MockUtils.PLUGIN_CONFIGURATION);
         final String transactionId = "transactionId";
         final String error = "error";
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).retrieveAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
         doReturn(apiResponse).when(httpClient).get(eq(requestConfiguration), any());
         doReturn(false).when(apiResponse).isSuccess();
         when(apiResponse.getError()).thenReturn(error);
