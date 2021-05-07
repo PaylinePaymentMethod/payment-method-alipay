@@ -3,6 +3,7 @@ package com.payline.payment.alipay.service.impl;
 import com.payline.payment.alipay.MockUtils;
 import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
 import com.payline.payment.alipay.bean.response.APIResponse;
+import com.payline.payment.alipay.service.AcquirerService;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.http.HttpClient;
 import com.payline.payment.alipay.utils.properties.ReleaseProperties;
@@ -10,6 +11,7 @@ import com.payline.pmapi.bean.configuration.ReleaseInformation;
 import com.payline.pmapi.bean.configuration.parameter.AbstractParameter;
 import com.payline.pmapi.bean.configuration.parameter.impl.ListBoxParameter;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
+import com.payline.pmapi.bean.configuration.request.ContractParametersRequest;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,6 +41,8 @@ class ConfigurationServiceImplTest {
     @Mock
     HttpClient httpClient;
 
+    @Mock
+    private AcquirerService acquirerService;
 
     @InjectMocks
     private ConfigurationServiceImpl service;
@@ -87,8 +91,11 @@ class ConfigurationServiceImplTest {
     @ParameterizedTest
     @MethodSource("getLocales")
     void getParameters(Locale locale) {
+        final ContractParametersRequest contractParametersRequest = MockUtils.aContractParametersRequest();
+        doReturn(MockUtils.acquirers()).when(acquirerService).retrieveAcquirers(MockUtils.PLUGIN_CONFIGURATION);
+
         // when: retrieving the contract parameters
-        List<AbstractParameter> parameters = service.getParameters(locale);
+        List<AbstractParameter> parameters = service.getParameters(contractParametersRequest);
 
         // then: each parameter has a unique key, a label and a description. List box parameters have at least 1 possible value.
         List<String> keys = new ArrayList<>();
@@ -154,6 +161,8 @@ class ConfigurationServiceImplTest {
                 "</alipay>";
         APIResponse mockResponse = APIResponse.fromXml(xml);
         doReturn(mockResponse).when(httpClient).get(any(RequestConfiguration.class), anyMap());
+        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
+
 
         // when: checking the configuration
         Map<String, String> errors = service.check(checkRequest);
@@ -176,12 +185,11 @@ class ConfigurationServiceImplTest {
 
         // then: error map is empty
         assertFalse(errors.isEmpty());
-        assertTrue(errors.containsKey(ContractConfigurationKeys.MERCHANT_PID));
+        assertTrue(errors.containsKey(ContractConfigurationKeys.ACQUIRER_ID));
         assertTrue(errors.containsKey(ContractConfigurationKeys.SECONDARY_MERCHANT_ID));
         assertTrue(errors.containsKey(ContractConfigurationKeys.SECONDARY_MERCHANT_NAME));
         assertTrue(errors.containsKey(ContractConfigurationKeys.SECONDARY_MERCHANT_INDUSTRY));
         assertTrue(errors.containsKey(ContractConfigurationKeys.SUPPLIER));
-        assertTrue(errors.containsKey(ContractConfigurationKeys.MERCHANT_BANK));
         assertTrue(errors.containsKey(ContractConfigurationKeys.MERCHANT_BANK_CODE));
     }
     /**

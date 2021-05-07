@@ -1,5 +1,8 @@
 package com.payline.payment.alipay;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.payline.payment.alipay.bean.configuration.Acquirer;
 import com.payline.payment.alipay.bean.object.Trade;
 import com.payline.payment.alipay.enumeration.PartnerTransactionIdOptions;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
@@ -8,6 +11,7 @@ import com.payline.payment.alipay.utils.http.StringResponse;
 import com.payline.pmapi.bean.common.Buyer;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
 import com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest;
+import com.payline.pmapi.bean.configuration.request.ContractParametersRequest;
 import com.payline.pmapi.bean.notification.request.NotificationRequest;
 import com.payline.pmapi.bean.payment.*;
 import com.payline.pmapi.bean.payment.request.PaymentRequest;
@@ -17,6 +21,7 @@ import com.payline.pmapi.bean.refund.request.RefundRequest;
 import org.mockito.internal.util.reflection.FieldSetter;
 
 import java.io.ByteArrayInputStream;
+import java.lang.reflect.Type;
 import java.math.BigInteger;
 import java.util.*;
 
@@ -35,6 +40,24 @@ public class MockUtils {
         return stringResponse;
     }
     public static String validNotificationBodyTemplate = "currency=USD&notify_id=5ac236e4cf7822d205cedcc252b54ebwg1&notify_time=2020-01-14 15:23:12&notify_type=trade_status_sync&out_trade_no=FALCN32YWXN2CL4KFT8&sign=NN2trlV3PKBjZN7KS4oE8PG8WkHFqXIvvQl32fJ2FO9J+HniSuvv36VYPWbARVmodnTvYVkFmR2FB9ioDX0iRTRRSCkz8+ox3ytrlRdRfaeGMSGBuHN6WP/tAHscBbNvjkzyshjTCoXO6MFFg92CR2K50DvtNNUerZa/mx4lA5I=&sign_type=RSA2&total_fee=108.00&trade_no=2020011421001003050502834160&trade_status=TRADE_STATUS";
+
+    public static final String PLUGIN_CONFIGURATION =
+            "[" +
+            "    {" +
+            "        \"id\": \"1\"," +
+            "        \"label\": \"Label 1\"," +
+            "        \"merchantPID\": \"pid1\"," +
+            "        \"alipayPublicKey\": \"alipay_key1\"," +
+            "        \"currency\": \"EUR\"" +
+            "    }," +
+            "    {" +
+            "        \"id\": \"2\"," +
+            "        \"label\": \"Label 2\"," +
+            "        \"merchantPID\": \"pid2\"," +
+            "        \"alipayPublicKey\": \"alipay_key2\"," +
+            "        \"currency\": \"USD\"" +
+            "    }" +
+            "]";
 
     public static String transactionBody = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
             "<alipay>\n" +
@@ -128,7 +151,6 @@ public class MockUtils {
                 "fCF/rfmku/z9yDDuor5NGjIfe/0dbB+nRKVSSpsmznIlxnSIFgeZx4D5Tchqd+Cy\n" +
                 "SHF1PJqewhePY9xfKAMSXUo=\n" +
                 "-----END PRIVATE KEY-----");
-        partnerConfigurationMap.put(PartnerConfigurationKeys.PUBLIC_KEY, "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvXgO/yLfPcJEgYy5EE7G4sXuzOQ4ki+5dFC2m/HBV5RUfAqoWWNF4ZXLc93C0IbnqRdPiX0C1cYne3cqQOY2NH6BiKEOVKyblI5loSobp5sfJszbIcvGcPmbTcOQsze1JR0at6sDeRarfyu4fwSCbVT6r39kVF/HVa1pGEuGU0XkTpfPCXZRFL50Xdm8+gRyRNgOw3BZfXggziWfg1P9RsLGfl/P2T9FUn+LXsBvY/i8EuNgyCia6Ht+Q/mXK0B2Svxauw/HZS4VvZbtNlOA0MD2oQBj363ytdXjgdaeZoDAD0b1FaQ+amwWjAVHvwW7lVkfKVZsCbBG3RHcT/YljwIDAQAB");
         partnerConfigurationMap.put(PartnerConfigurationKeys.SCHEME, "ALIPAY");
         partnerConfigurationMap.put(PartnerConfigurationKeys.MESSAGE_SENDER_ID, "Payline");
         partnerConfigurationMap.put(PartnerConfigurationKeys.PARTNER_ID, "partnerId");
@@ -137,6 +159,27 @@ public class MockUtils {
 
         return new PartnerConfiguration(partnerConfigurationMap, sensitiveConfigurationMap);
     }
+
+    public static Acquirer anAcquirer() {
+        return Acquirer.builder()
+                .alipayPublicKey("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvXgO/yLfPcJEgYy5EE7G4sXuzOQ4ki+5dFC2m/HBV5RUfAqoWWNF4ZXLc93C0IbnqRdPiX0C1cYne3cqQOY2NH6BiKEOVKyblI5loSobp5sfJszbIcvGcPmbTcOQsze1JR0at6sDeRarfyu4fwSCbVT6r39kVF/HVa1pGEuGU0XkTpfPCXZRFL50Xdm8+gRyRNgOw3BZfXggziWfg1P9RsLGfl/P2T9FUn+LXsBvY/i8EuNgyCia6Ht+Q/mXK0B2Svxauw/HZS4VvZbtNlOA0MD2oQBj363ytdXjgdaeZoDAD0b1FaQ+amwWjAVHvwW7lVkfKVZsCbBG3RHcT/YljwIDAQAB")
+                .id("id")
+                .label("label")
+                .currency("currency")
+                .merchantPID("merchantPID")
+                .build();
+    }
+
+    /**
+     * Generate a valid Acquirer list
+     */
+    public static List<Acquirer> acquirers()  {
+        final Gson gson = new Gson();
+        final Type type = new TypeToken<List<Acquirer>>(){}.getType();
+        final List<Acquirer> acquirerList = gson.fromJson(PLUGIN_CONFIGURATION, type);
+        return acquirerList;
+    }
+
 
     /**
      * Generate a MalformedURLException url {@link PartnerConfiguration}.
@@ -153,28 +196,17 @@ public class MockUtils {
     /**
      * Generate a valid {@link ContractConfiguration} to verify the connection to the API.
      */
-    public static ContractConfiguration aContractConfigurationToVerifyConnection() {
-
-        Map<String, ContractProperty> contractProperties = new HashMap<>();
-        contractProperties.put(ContractConfigurationKeys.MERCHANT_PID, new ContractProperty("2088621926786355"));
-
-        return new ContractConfiguration("Alipay", contractProperties);
-    }
-    /**
-     * Generate a valid {@link ContractConfiguration} to verify the connection to the API.
-     */
     public static ContractConfiguration aContractConfiguration() {
 
         Map<String, ContractProperty> contractProperties = new HashMap<>();
-        contractProperties.put(ContractConfigurationKeys.MERCHANT_PID, new ContractProperty("2088621926786355"));
         contractProperties.put(ContractConfigurationKeys.SUPPLIER, new ContractProperty("merchant"));
         contractProperties.put(ContractConfigurationKeys.MERCHANT_URL, new ContractProperty("http://foo.bar.baz"));
         contractProperties.put(ContractConfigurationKeys.SECONDARY_MERCHANT_ID, new ContractProperty("1314520"));
         contractProperties.put(ContractConfigurationKeys.SECONDARY_MERCHANT_NAME, new ContractProperty("China Substation"));
         contractProperties.put(ContractConfigurationKeys.SECONDARY_MERCHANT_INDUSTRY, new ContractProperty("5499"));
-        contractProperties.put(ContractConfigurationKeys.MERCHANT_BANK, new ContractProperty("123456"));
         contractProperties.put(ContractConfigurationKeys.MERCHANT_BANK_CODE, new ContractProperty("12345"));
         contractProperties.put(ContractConfigurationKeys.PARTNER_TRANSACTION_ID, new ContractProperty(PartnerTransactionIdOptions.ORDER_REFERENCE.name()));
+        contractProperties.put(ContractConfigurationKeys.ACQUIRER_ID, new ContractProperty("id"));
         return new ContractConfiguration("Alipay", contractProperties);
     }
 
@@ -238,6 +270,7 @@ public class MockUtils {
                 .withLocale(Locale.getDefault())
                 .withOrder(aPaylineOrder())
                 .withPartnerConfiguration(aPartnerConfiguration())
+                .withPluginConfiguration(PLUGIN_CONFIGURATION)
                 .withPaymentFormContext(aPaymentFormContext())
                 .withSoftDescriptor("Test")
                 .withTransactionId("PAYLINE"+randomTransactionId);
@@ -261,6 +294,7 @@ public class MockUtils {
                 .withContractConfiguration(aContractConfiguration())
                 .withEnvironment(anEnvironment())
                 .withPartnerTransactionId(TRANSACTIONID)
+                .withPluginConfiguration(PLUGIN_CONFIGURATION)
                 .withOrder(aPaylineOrder())
                 .withPartnerConfiguration(aPartnerConfiguration())
                 .withSoftDescriptor("Test")
@@ -285,6 +319,7 @@ public class MockUtils {
                 .withContractConfiguration(aContractConfiguration())
                 .withEnvironment(anEnvironment())
                 .withPartnerTransactionId(TRANSACTIONID)
+                .withPluginConfiguration(PLUGIN_CONFIGURATION)
                 .withOrder(aPaylineOrder())
                 .withPartnerConfiguration(aPartnerConfiguration())
                 .withSoftDescriptor("Test")
@@ -336,7 +371,25 @@ public class MockUtils {
                 .withContractConfiguration(aContractConfiguration())
                 .withEnvironment(anEnvironment())
                 .withLocale(Locale.getDefault())
-                .withPartnerConfiguration(aPartnerConfiguration());
+                .withPartnerConfiguration(aPartnerConfiguration())
+                .withPluginConfiguration(PLUGIN_CONFIGURATION);
+    }
+    /**
+     * Generate a valid {@link ContractParametersCheckRequest}.
+     */
+    public static ContractParametersRequest aContractParametersRequest() {
+        return aContractParametersRequestBuilder().build();
+    }
+    /**
+     * Generate a builder for a valid {@link ContractParametersRequest}.
+     * This way, some attributes may be overridden to match specific test needs.
+     */
+    public static ContractParametersRequest.ContractParametersRequestBuilder aContractParametersRequestBuilder() {
+        return ContractParametersRequest.builder()
+                .environment(anEnvironment())
+                .locale(Locale.getDefault())
+                .partnerConfiguration(aPartnerConfiguration())
+                .pluginConfiguration(PLUGIN_CONFIGURATION);
     }
     /**
      * Generate a valid accountInfo, an attribute of a {@link ContractParametersCheckRequest} instance.

@@ -5,7 +5,6 @@ public class PartnerConfigurationKeys {
     public static final String READ_TIMEOUT = "READ_TIMEOUT";
     public static final String CONNECT_TIMEOUT = "CONNECT_TIMEOUT";
     public static final String PAYLINE_PRIVATE_KEY = "PAYLINE_PRIVATE_KEY";
-    public static final String PUBLIC_KEY = "PUBLIC_KEY";
 
     public static final String SCHEME = "SCHEME";
     public static final String MESSAGE_SENDER_ID = "MESSAGE_SENDER_ID";
