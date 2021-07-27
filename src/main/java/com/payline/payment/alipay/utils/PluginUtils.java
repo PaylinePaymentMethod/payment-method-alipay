@@ -20,8 +20,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class PluginUtils {
-    private static final String PATTERN = "^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
-
 
     /* Static utility class : no need to instantiate it (to please Sonar) */
     private PluginUtils() {
@@ -112,17 +110,11 @@ public class PluginUtils {
 
     public static Map<String, String> createMapFromString(String message) {
         Map<String, String> map = new HashMap<>();
-        Pattern pattern = Pattern.compile("(.+)=(.+)");
-        Matcher matcher;
-
         String[] keyValuePairs = message.split("&");
         for (String kv : keyValuePairs) {
-            matcher = pattern.matcher(kv);
-            if (matcher.find()) {
-                map.put(matcher.group(1), matcher.group(2));
-            }
+            String[] keyAndValue = kv.split("=",2);
+            map.put(keyAndValue[0], keyAndValue[1]);
         }
-
         return map;
     }
 
@@ -147,8 +139,7 @@ public class PluginUtils {
      */
     public static Email buildEmail(String val) {
         val = val.replace("*", "X");
-
-        Pattern pattern = Pattern.compile(PATTERN);
+        Pattern pattern = Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
         Matcher matcher = pattern.matcher(val);
         if (!matcher.matches()) {
             val += "@id.com";
