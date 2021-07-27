@@ -20,7 +20,6 @@ import com.payline.pmapi.bean.reset.request.ResetRequest;
 public class RequestConfiguration {
 
     private ContractConfiguration contractConfiguration;
-    private Environment environment;
     private PartnerConfiguration partnerConfiguration;
     private String pluginConfiguration;
 
@@ -38,7 +37,6 @@ public class RequestConfiguration {
             throw new InvalidDataException("Missing request pluginConfiguration");
         }
         this.contractConfiguration = contractConfiguration;
-        this.environment = environment;
         this.partnerConfiguration = partnerConfiguration;
         this.pluginConfiguration = pluginConfiguration;
     }
