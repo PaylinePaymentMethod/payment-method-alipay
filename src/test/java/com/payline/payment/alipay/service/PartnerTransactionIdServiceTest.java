@@ -63,12 +63,12 @@ class PartnerTransactionIdServiceTest {
 
         final Long expectedTID = Long.parseLong(transactionIdDecimal.substring(transactionIdDecimal.length() - 7));
         final String tidSubstring = partnerTransactionId.substring(1, 8);
-        assertEquals(tidSubstring, "000CAFE");
+        assertEquals("000CAFE", tidSubstring);
         assertEquals(expectedTID, hexToDec(tidSubstring));
 
         final Long expectedMerchantBankCode = 12345L;
         final String merchantBankCodeSubstring = partnerTransactionId.substring(8, 13);
-        assertEquals(merchantBankCodeSubstring, "03039");
+        assertEquals("03039", merchantBankCodeSubstring);
         assertEquals(expectedMerchantBankCode, hexToDec(merchantBankCodeSubstring));
 
         final Long expectedContractCode = 1314520L;
@@ -77,12 +77,12 @@ class PartnerTransactionIdServiceTest {
         assertEquals(expectedContractCode, hexToDec(contractCodeSubstring));
 
         final String terminalSubstring = partnerTransactionId.substring(19, 22);
-        assertEquals(terminalSubstring, "003");
+        assertEquals("003", terminalSubstring );
         assertEquals(3L, hexToDec(terminalSubstring));
 
         final long expectedDate = 201213141516L;
         final String dateSubstring = partnerTransactionId.substring(22);
-        assertEquals(dateSubstring, "2ED93CE20C");
+        assertEquals("2ED93CE20C", dateSubstring);
         assertEquals(expectedDate, hexToDec(dateSubstring));
     }
 
