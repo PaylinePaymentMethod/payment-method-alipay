@@ -73,7 +73,7 @@ class PartnerTransactionIdServiceTest {
 
         final Long expectedContractCode = 1314520L;
         final String contractCodeSubstring = partnerTransactionId.substring(13, 19);
-        assertEquals(contractCodeSubstring, "140ED8");
+        assertEquals("140ED8", contractCodeSubstring);
         assertEquals(expectedContractCode, hexToDec(contractCodeSubstring));
 
         final String terminalSubstring = partnerTransactionId.substring(19, 22);

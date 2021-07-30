@@ -2,6 +2,7 @@ package com.payline.payment.alipay.bean.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.payline.payment.alipay.bean.object.Response;
 import com.payline.payment.alipay.exception.InvalidDataException;
@@ -13,24 +14,27 @@ import java.io.IOException;
 @JacksonXmlRootElement(namespace = "alipay", localName = "AlipayAPIResponse")
 public class APIResponse {
 
-    private String is_success;
+    @JacksonXmlProperty(localName = "is_success")
+    private String isSuccess;
+    @JacksonXmlProperty(localName = "sign_type")
+    private String signType;
     private Response response;
     private String error;
     private String sign;
-    private String sign_type;
+
     private static XmlMapper xmlMapper = new XmlMapper();
 
-    public String getIs_success() {
-        return is_success;
+    public String getIsSuccess() {
+        return isSuccess;
     }
 
     public boolean isSuccess()
     {
-        return getIs_success().equalsIgnoreCase("t");
+        return getIsSuccess().equalsIgnoreCase("t");
     }
 
-    public void setIs_success(String is_success) {
-        this.is_success = is_success;
+    public void setIsSuccess(String isSuccess) {
+        this.isSuccess = isSuccess;
     }
 
     public Response getResponse() {
@@ -50,12 +54,12 @@ public class APIResponse {
         this.sign = sign;
     }
 
-    public String getSign_type() {
-        return sign_type;
+    public String getSignType() {
+        return signType;
     }
 
-    public void setSign_type(String sign_type) {
-        this.sign_type = sign_type;
+    public void setSignType(String signType) {
+        this.signType = signType;
     }
 
     public void setError(String error)

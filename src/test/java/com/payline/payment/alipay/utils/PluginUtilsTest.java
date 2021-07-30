@@ -2,6 +2,7 @@ package com.payline.payment.alipay.utils;
 
 import com.payline.pmapi.bean.common.Amount;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -67,6 +68,21 @@ class PluginUtilsTest {
         expected.put("trade_status", "TRADE_FINISHED");
 
         assertEquals(expected, PluginUtils.createMapFromString(message));
+    }
+
+    @Test
+    void buildEmailOK() {
+        final String emailAddressexpected = "test@mail.com";
+        final String emailAddressValidated = PluginUtils.buildEmail("test@mail.com").getEmail();
+        assertEquals(emailAddressexpected, emailAddressValidated);
+    }
+
+    @Test
+    @DisplayName("Should Return the Email Address with suffix @id.com if not valid")
+    void buildEmailShouldReturnEmailAddressWithSuffixIdCom() {
+        final String emailAddressexpected = "test.mail.com@id.com";
+        final String emailAddressValidated = PluginUtils.buildEmail("test.mail.com").getEmail();
+        assertEquals(emailAddressexpected, emailAddressValidated);
     }
 
     @Test
