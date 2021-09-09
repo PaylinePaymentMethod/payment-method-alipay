@@ -72,6 +72,12 @@ public class Trade {
     @JacksonXmlProperty(localName = "use_coupon")
     private String useCoupon;
 
+    @JacksonXmlProperty(localName = "time_out")
+    private String timeOut;
+
+    @JacksonXmlProperty(localName = "time_out_type")
+    private String timeOutType;
+
     public String getDiscount() {
         return discount;
     }

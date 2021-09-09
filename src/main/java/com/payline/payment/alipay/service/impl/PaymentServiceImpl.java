@@ -53,11 +53,12 @@ public class PaymentServiceImpl implements PaymentService {
             final String merchantPID = acquirerService.fetchAcquirer(configuration.getPluginConfiguration(),
                     configuration.getContractConfiguration().getProperty(ContractConfigurationKeys.ACQUIRER_ID).getValue()).getMerchantPID();
             // create createForexTrade request object
+            final String partnerTransactionId = partnerTransactionIdService.retrievePartnerTransactionId(paymentRequest);
             CreateForexTrade createForexTrade = CreateForexTrade.CreateForexTradeBuilder
                     .aCreateForexTrade()
                     .withCurrency(paymentRequest.getOrder().getAmount().getCurrency().getCurrencyCode())
                     .withNotifyUrl(paymentRequest.getEnvironment().getNotificationURL())
-                    .withOutTradeNo(partnerTransactionIdService.retrievePartnerTransactionId(paymentRequest))
+                    .withOutTradeNo(partnerTransactionId)
                     .withPartner(merchantPID)
                     .withProductCode(productCode)
                     .withReferUrl(contractConfiguration.getProperty(ContractConfigurationKeys.MERCHANT_URL).getValue())
@@ -92,7 +93,7 @@ public class PaymentServiceImpl implements PaymentService {
                     .build();
 
             paymentResponse = PaymentResponseRedirect.PaymentResponseRedirectBuilder.aPaymentResponseRedirect()
-                    .withPartnerTransactionId(paymentRequest.getTransactionId())
+                    .withPartnerTransactionId(partnerTransactionId)
                     .withRedirectionRequest(redirectionRequest)
                     .build();
 

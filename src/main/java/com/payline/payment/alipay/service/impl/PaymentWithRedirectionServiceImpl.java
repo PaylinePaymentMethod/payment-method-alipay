@@ -33,6 +33,7 @@ import java.util.Map;
 
 public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirectionService {
     private static final Logger LOGGER = LogManager.getLogger(PaymentWithRedirectionServiceImpl.class);
+    public static final String TRADE_NOT_EXIST = "TRADE_NOT_EXIST";
 
     // Variables non finales pour l'injection par mockito
     private HttpClient client = HttpClient.getInstance();
@@ -78,11 +79,27 @@ public class PaymentWithRedirectionServiceImpl implements PaymentWithRedirection
     }
 
     @Override
-    public PaymentResponse handleSessionExpired(final TransactionStatusRequest requestData) {
-        return PaymentResponseFailure.PaymentResponseFailureBuilder.aPaymentResponseFailure()
-                .withFailureCause(FailureCause.SESSION_EXPIRED)
-                .withErrorCode("Session expired")
-                .build();
+    public PaymentResponse handleSessionExpired(final TransactionStatusRequest request) {
+        PaymentResponse paymentResponse;
+        try {
+            final RequestConfiguration configuration = new RequestConfiguration(request.getContractConfiguration(),
+                    request.getEnvironment(), request.getPartnerConfiguration(), request.getPluginConfiguration());
+            paymentResponse = retrieveTransactionStatus(configuration, request.getTransactionId());
+        } catch (final PluginException e) {
+            final FailureCause failureCause = TRADE_NOT_EXIST.equals(e.getErrorCode()) ? FailureCause.SESSION_EXPIRED : e.getFailureCause();
+            paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder.aPaymentResponseFailure()
+                    .withErrorCode(e.getErrorCode())
+                    .withFailureCause(failureCause)
+                    .withPartnerTransactionId(request.getTransactionId())
+                    .build();
+        } catch (final RuntimeException e) {
+            paymentResponse = PaymentResponseFailure.PaymentResponseFailureBuilder.aPaymentResponseFailure()
+                    .withErrorCode(PluginException.runtimeErrorCode(e))
+                    .withFailureCause(FailureCause.INTERNAL_ERROR)
+                    .withPartnerTransactionId(request.getTransactionId())
+                    .build();
+        }
+        return paymentResponse;
     }
 
     /**
