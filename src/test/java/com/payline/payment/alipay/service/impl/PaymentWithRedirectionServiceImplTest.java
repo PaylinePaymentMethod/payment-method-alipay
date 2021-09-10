@@ -15,10 +15,13 @@ import com.payline.pmapi.bean.common.OnHoldCause;
 import com.payline.pmapi.bean.configuration.PartnerConfiguration;
 import com.payline.pmapi.bean.payment.ContractConfiguration;
 import com.payline.pmapi.bean.payment.request.RedirectionPaymentRequest;
+import com.payline.pmapi.bean.payment.request.TransactionStatusRequest;
 import com.payline.pmapi.bean.payment.response.PaymentResponse;
+import com.payline.pmapi.bean.payment.response.impl.PaymentResponseActiveWaiting;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseFailure;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseOnHold;
 import com.payline.pmapi.bean.payment.response.impl.PaymentResponseSuccess;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -27,8 +30,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Answers.RETURNS_DEEP_STUBS;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -171,14 +173,84 @@ class PaymentWithRedirectionServiceImplTest {
         assertEquals(FailureCause.INTERNAL_ERROR, paymentResponseFailure.getFailureCause());
     }
 
-    @Test
-    void handleSessionExpired() {
-        final PaymentResponse paymentResponse = underTest.handleSessionExpired(null);
+    @Nested
+    class HandleSessionExpired {
 
-        assertTrue(paymentResponse instanceof PaymentResponseFailure);
-        final PaymentResponseFailure paymentResponseFailure = (PaymentResponseFailure) paymentResponse;
-        assertEquals("Session expired", paymentResponseFailure.getErrorCode());
-        assertEquals(FailureCause.SESSION_EXPIRED, paymentResponseFailure.getFailureCause());
+        public static final String TRANSACTION_ID = "transactionId";
+        private final ContractConfiguration contractConfiguration = MockUtils.aContractConfiguration();
+        private final PartnerConfiguration partnerConfiguration = MockUtils.aPartnerConfiguration();
+        private final TransactionStatusRequest transactionStatusRequest = TransactionStatusRequest.TransactionStatusRequestBuilder
+                .aNotificationRequest()
+                .withTransactionId(TRANSACTION_ID)
+                .withAmount(MockUtils.aPaylineAmount())
+                .withOrder(MockUtils.aPaylineOrder())
+                .withBuyer(MockUtils.aBuyer())
+                .withContractConfiguration(contractConfiguration)
+                .withEnvironment(MockUtils.anEnvironment())
+                .withPartnerConfiguration(partnerConfiguration)
+                .withPluginConfiguration(MockUtils.PLUGIN_CONFIGURATION)
+                .build();
+
+        @Test
+        void nominal() {
+            final PaymentResponseActiveWaiting response = PaymentResponseActiveWaiting.builder().build();
+            doReturn(response).when(underTest).retrieveTransactionStatus(requestConfigurationArgumentCaptor1.capture(),
+                    eq(TRANSACTION_ID));
+
+            final PaymentResponse paymentResponse = underTest.handleSessionExpired(transactionStatusRequest);
+
+            assertEquals(response, paymentResponse);
+            final RequestConfiguration requestConfiguration = requestConfigurationArgumentCaptor1.getValue();
+            assertNotNull(requestConfiguration);
+            assertEquals(contractConfiguration, requestConfiguration.getContractConfiguration());
+            assertEquals(partnerConfiguration, requestConfiguration.getPartnerConfiguration());
+            assertEquals(MockUtils.PLUGIN_CONFIGURATION, requestConfiguration.getPluginConfiguration());
+        }
+
+        @Test
+        void pluginExceptionTradeNotExist() {
+            // any car testé dans le cas nominal
+            doThrow(new PluginException(PaymentWithRedirectionServiceImpl.TRADE_NOT_EXIST))
+                    .when(underTest).retrieveTransactionStatus(any(RequestConfiguration.class), eq(TRANSACTION_ID));
+
+            final PaymentResponse paymentResponse = underTest.handleSessionExpired(transactionStatusRequest);
+
+            assertTrue(paymentResponse instanceof PaymentResponseFailure);
+            final PaymentResponseFailure paymentResponseFailure = (PaymentResponseFailure) paymentResponse;
+            assertEquals(FailureCause.SESSION_EXPIRED, paymentResponseFailure.getFailureCause());
+            assertEquals(TRANSACTION_ID, paymentResponseFailure.getPartnerTransactionId());
+            assertEquals(PaymentWithRedirectionServiceImpl.TRADE_NOT_EXIST, paymentResponseFailure.getErrorCode());
+        }
+
+        @Test
+        void pluginException() {
+            // any car testé dans le cas nominal
+            doThrow(new PluginException("error", FailureCause.COMMUNICATION_ERROR))
+                    .when(underTest).retrieveTransactionStatus(any(RequestConfiguration.class), eq(TRANSACTION_ID));
+
+            final PaymentResponse paymentResponse = underTest.handleSessionExpired(transactionStatusRequest);
+
+            assertTrue(paymentResponse instanceof PaymentResponseFailure);
+            final PaymentResponseFailure paymentResponseFailure = (PaymentResponseFailure) paymentResponse;
+            assertEquals(FailureCause.COMMUNICATION_ERROR, paymentResponseFailure.getFailureCause());
+            assertEquals(TRANSACTION_ID, paymentResponseFailure.getPartnerTransactionId());
+            assertEquals("error", paymentResponseFailure.getErrorCode());
+        }
+
+        @Test
+        void runtimeException() {
+            // any car testé dans le cas nominal
+            doThrow(new RuntimeException("error"))
+                    .when(underTest).retrieveTransactionStatus(any(RequestConfiguration.class), eq(TRANSACTION_ID));
+
+            final PaymentResponse paymentResponse = underTest.handleSessionExpired(transactionStatusRequest);
+
+            assertTrue(paymentResponse instanceof PaymentResponseFailure);
+            final PaymentResponseFailure paymentResponseFailure = (PaymentResponseFailure) paymentResponse;
+            assertEquals(FailureCause.INTERNAL_ERROR, paymentResponseFailure.getFailureCause());
+            assertEquals(TRANSACTION_ID, paymentResponseFailure.getPartnerTransactionId());
+            assertEquals("plugin error: RuntimeException: error", paymentResponseFailure.getErrorCode());
+        }
     }
 
     @Test
