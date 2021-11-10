@@ -1,8 +1,6 @@
 package com.payline.payment.alipay.service.impl;
 
 import com.payline.payment.alipay.MockUtils;
-import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
-import com.payline.payment.alipay.bean.response.APIResponse;
 import com.payline.payment.alipay.service.AcquirerService;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
 import com.payline.payment.alipay.utils.http.HttpClient;
@@ -28,8 +26,6 @@ import java.util.*;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.doReturn;
 
 class ConfigurationServiceImplTest {
@@ -154,16 +150,6 @@ class ConfigurationServiceImplTest {
         // given: a valid configuration, including client ID / secret
         ContractParametersCheckRequest checkRequest = MockUtils.aContractParametersCheckRequest();
 
-        String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                "<alipay>\n" +
-                "    <is_success>F</is_success>\n" +
-                "    <error>TRADE_NOT_EXIST</error>\n" +
-                "</alipay>";
-        APIResponse mockResponse = APIResponse.fromXml(xml);
-        doReturn(mockResponse).when(httpClient).get(any(RequestConfiguration.class), anyMap());
-        doReturn(MockUtils.anAcquirer()).when(acquirerService).fetchAcquirer(MockUtils.PLUGIN_CONFIGURATION, "id");
-
-
         // when: checking the configuration
         Map<String, String> errors = service.check(checkRequest);
 
@@ -191,64 +177,6 @@ class ConfigurationServiceImplTest {
         assertTrue(errors.containsKey(ContractConfigurationKeys.SECONDARY_MERCHANT_INDUSTRY));
         assertTrue(errors.containsKey(ContractConfigurationKeys.SUPPLIER));
         assertTrue(errors.containsKey(ContractConfigurationKeys.MERCHANT_BANK_CODE));
-    }
-    /**
-     * ------------------------------------------------------------------------------------------------------------------
-     */
-    @Test
-    void check_illegalPartner() {
-
-        // given: a valid configuration, including client ID / secret
-        ContractParametersCheckRequest checkRequest = MockUtils.aContractParametersCheckRequest();
-
-        String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                "<alipay>\n" +
-                "    <is_success>F</is_success>\n" +
-                "    <error>ILLEGAL_PARTNER</error>\n" +
-                "</alipay>";
-        APIResponse mockResponse = APIResponse.fromXml(xml);
-        doReturn(mockResponse).when(httpClient).get(any(RequestConfiguration.class), anyMap());
-
-        // when: checking the configuration
-        Map<String, String> errors = service.check(checkRequest);
-
-        // then: error map contains one element
-        assertTrue(service.check(checkRequest).size() > 0);
-    }
-
-    /**
-     * ------------------------------------------------------------------------------------------------------------------
-     */
-    @Test
-    void check_illegalSign() {
-
-        // given: a valid configuration, including client ID / secret
-        ContractParametersCheckRequest checkRequest = MockUtils.aContractParametersCheckRequest();
-
-        String xml = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
-                "<alipay>\n" +
-                "    <is_success>F</is_success>\n" +
-                "    <error>ILLEGAL_SIGN</error>\n" +
-                "</alipay>";
-        APIResponse mockResponse = APIResponse.fromXml(xml);
-        doReturn(mockResponse).when(httpClient).get(any(RequestConfiguration.class), anyMap());
-
-        // when: checking the configuration
-        Map<String, String> errors = service.check(checkRequest);
-
-        // then: error map contains one element
-        assertTrue(service.check(checkRequest).size() > 0);
-    }
-
-
-    @Test
-    void check_invalidPrivateKey(){
-        // given: a valid configuration, including client ID / secret
-        ContractParametersCheckRequest checkRequest = MockUtils.aContractParametersCheckRequest();
-
-        // when: checking the configuration
-        assertTrue(service.check(checkRequest).size() > 0);
-
     }
 
 }
