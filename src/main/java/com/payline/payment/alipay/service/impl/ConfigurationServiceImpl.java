@@ -1,15 +1,11 @@
 package com.payline.payment.alipay.service.impl;
 
 import com.payline.payment.alipay.bean.configuration.Acquirer;
-import com.payline.payment.alipay.bean.configuration.RequestConfiguration;
-import com.payline.payment.alipay.bean.request.SingleTradeQuery;
-import com.payline.payment.alipay.bean.response.APIResponse;
 import com.payline.payment.alipay.enumeration.PartnerTransactionIdOptions;
 import com.payline.payment.alipay.exception.PluginException;
 import com.payline.payment.alipay.service.AcquirerService;
 import com.payline.payment.alipay.utils.PluginUtils;
 import com.payline.payment.alipay.utils.constant.ContractConfigurationKeys;
-import com.payline.payment.alipay.utils.http.HttpClient;
 import com.payline.payment.alipay.utils.i18n.I18nService;
 import com.payline.payment.alipay.utils.properties.ReleaseProperties;
 import com.payline.pmapi.bean.configuration.ReleaseInformation;
@@ -26,16 +22,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static com.payline.payment.alipay.bean.object.ForexService.SINGLE_TRADE_QUERY;
-import static com.payline.pmapi.bean.configuration.request.ContractParametersCheckRequest.GENERIC_ERROR;
-
 public class ConfigurationServiceImpl implements ConfigurationService {
     private static final Logger LOGGER = LogManager.getLogger(ConfigurationServiceImpl.class);
 
     private static final String I18N_CONTRACT_PREFIX = "contract.";
     private I18nService i18n = I18nService.getInstance();
     private ReleaseProperties releaseProperties = ReleaseProperties.getInstance();
-    private HttpClient client = HttpClient.getInstance();
     private AcquirerService acquirerService = AcquirerService.getInstance();
 
     @Override
@@ -127,7 +119,6 @@ public class ConfigurationServiceImpl implements ConfigurationService {
 
     @Override
     public Map<String, String> check(ContractParametersCheckRequest contractParametersCheckRequest) {
-        RequestConfiguration configuration = RequestConfiguration.build(contractParametersCheckRequest);
         final Map<String, String> errors = new HashMap<>();
 
         Map<String, String> accountInfo = contractParametersCheckRequest.getAccountInfo();
@@ -151,36 +142,10 @@ public class ConfigurationServiceImpl implements ConfigurationService {
         }
 
         // check the length of some fields
-
         if (accountInfo.get(ContractConfigurationKeys.MERCHANT_BANK_CODE).length() != 5) {
             errors.put(ContractConfigurationKeys.MERCHANT_BANK_CODE, i18n.getMessage("contract.MERCHANT_BANK_CODE.badLength", locale));
         }
 
-        try {
-
-            final String merchantPID = acquirerService.fetchAcquirer(contractParametersCheckRequest.getPluginConfiguration(), accountInfo.get(ContractConfigurationKeys.ACQUIRER_ID)).getMerchantPID();
-            // create a fake single_trade_query request object with a wrong transactionId
-            SingleTradeQuery singleTradeQuery = SingleTradeQuery.SingleTradeQueryBuilder
-                    .aSingleTradeQuery()
-                    .withOutTradeNo("0")
-                    .withPartner(merchantPID)
-                    .withService(SINGLE_TRADE_QUERY)
-                    .build();
-
-            // call get API
-            APIResponse response = client.get(configuration, singleTradeQuery.getParametersList());
-
-            // response should not be successful
-            if ("ILLEGAL_PARTNER".equalsIgnoreCase(response.getError())) {
-                errors.put(ContractConfigurationKeys.ACQUIRER_ID, response.getError());
-            } else if (!"TRADE_NOT_EXIST".equalsIgnoreCase(response.getError())) {
-                errors.put(GENERIC_ERROR, response.getError());
-            }
-        } catch (PluginException e) {
-            errors.put(GENERIC_ERROR, e.getErrorCode());
-        } catch (RuntimeException e) {
-            errors.put(GENERIC_ERROR, e.getMessage());
-        }
         return errors;
     }
 
